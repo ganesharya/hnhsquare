@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card"><h5>Active Products</h5><div class="value">{{ stats.total_products }}</div></div>
+    <div class="stat-card"><h5>Customers</h5><div class="value">{{ stats.total_users }}</div></div>
+    <div class="stat-card"><h5>New Contacts</h5><div class="value" style="color: var(--warning);">{{ stats.new_contacts }}</div></div>
+    <div class="stat-card"><h5>Design Requests</h5><div class="value" style="color: var(--success);">{{ stats.new_designs }}</div></div>
+    <div class="stat-card"><h5>VR Houses</h5><div class="value">{{ stats.total_houses }}</div></div>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <div class="card">
+        <div class="card-header"><h4>Quick Actions</h4></div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="/admin/products" class="btn btn-primary" style="justify-content: center;">+ Add New Product</a>
+            <a href="/admin/content" class="btn btn-success" style="justify-content: center;">Edit Site Content</a>
+            <a href="/admin/contacts" class="btn btn-warning" style="justify-content: center;">Check New Inquiries</a>
+            <a href="/admin/vr-houses" class="btn btn-primary" style="justify-content: center;">+ Add VR House</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h4>Recent Inquiries</h4><a href="/admin/contacts" class="btn btn-sm btn-primary">View All</a></div>
+        <div class="card-body" style="padding: 0;">
+            <table class="table">
+                <thead><tr><th>Name</th><th>Subject</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for c in recent_contacts %}
+                    <tr><td>{{ c.name }}</td><td>{{ c.subject }}</td><td><span class="status-badge status-{{ c.status }}">{{ c.status|title }}</span></td></tr>
+                    {% else %}<tr><td colspan="3" style="text-align: center; color: var(--text-light);">No contacts</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h4>Design Requests</h4><a href="/admin/design-requests" class="btn btn-sm btn-primary">View All</a></div>
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead><tr><th>Name</th><th>Room</th><th>Style</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for d in recent_designs %}
+                <tr><td>{{ d.name }}</td><td>{{ d.room_type }}</td><td>{{ d.style }}</td><td><span class="status-badge status-{{ d.status }}">{{ d.status|title }}</span></td></tr>
+                {% else %}<tr><td colspan="4" style="text-align: center; color: var(--text-light);">No requests</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

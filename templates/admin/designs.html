@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% block title %}Design Requests{% endblock %}
+{% block page_title %}AI Design Requests{% endblock %}
+{% block content %}
+<div class="card"><div class="card-header"><h4>All Design Requests</h4></div><div class="card-body" style="padding: 0;"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Room</th><th>Size</th><th>Style</th><th>Budget</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>{% for d in designs %}<tr><td>{{ d.name }}</td><td>{{ d.email }}</td><td>{{ d.phone or 'N/A' }}</td><td>{{ d.room_type }}</td><td>{{ d.room_size or 'N/A' }}</td><td>{{ d.style or 'N/A' }}</td><td>{{ d.budget or 'N/A' }}</td><td><span class="status-badge status-{{ d.status }}">{{ d.status|title }}</span></td><td>{{ d.created_at[:10] }}</td><td>{% if d.status == 'new' %}<a href="/admin/design/mark/{{ d.id }}" class="btn btn-sm btn-success">Mark Read</a>{% endif %}</td></tr>{% else %}<tr><td colspan="10" style="text-align: center; color: var(--text-light); padding: 40px;">No design requests</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

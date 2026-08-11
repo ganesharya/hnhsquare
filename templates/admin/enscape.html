@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Enscape Projects{% endblock %}
+{% block page_title %}Enscape 3D Projects{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h4>Enscape Web Standalone Projects</h4></div>
+    <div class="card-body">
+        <p style="margin-bottom: 20px; color: var(--text-light);">
+            Upload Enscape Web Standalone exports to <code>/static/enscape/project-name/</code>. 
+            Each project folder should contain <code>index.html</code> + <code>assets/</code> folder.
+        </p>
+        <table class="table">
+            <thead><tr><th>Project Name</th><th>Viewer URL</th><th>Direct Link</th></tr></thead>
+            <tbody>
+                {% for p in projects %}
+                <tr>
+                    <td><strong>{{ p.name }}</strong></td>
+                    <td><a href="{{ p.url }}" target="_blank" class="btn btn-sm btn-primary">Open Viewer</a></td>
+                    <td><a href="/static/enscape/{{ p.name }}/index.html" target="_blank" class="btn btn-sm btn-outline">Direct Link</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align: center; color: var(--text-light); padding: 40px;">
+                    No Enscape projects found.<br>
+                    Export from Enscape as "Web Standalone" and upload to <code>/static/enscape/</code>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h4>How to Export from Enscape</h4></div>
+    <div class="card-body">
+        <ol style="line-height: 2; color: var(--text);">
+            <li>Open your architectural model in <strong>Revit / SketchUp / Rhino / ArchiCAD</strong></li>
+            <li>Launch <strong>Enscape</strong> and set up your desired views</li>
+            <li>Go to Enscape menu → <strong>"Web Standalone"</strong></li>
+            <li>Click <strong>"Export"</strong> and choose output folder</li>
+            <li>Upload the exported folder to <code>/static/enscape/your-project-name/</code></li>
+            <li>Access via: <code>/enscape-viewer?project=your-project-name</code></li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

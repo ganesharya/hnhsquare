@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalogue | HNHSquare Interior Design</title>
+    <meta name="description" content="Browse HNHSquare's premium collection of designer doors, hardware, modular kitchens, wardrobes, and interior furniture.">
+    <link rel="canonical" href="https://hnhsquare.com/catalogue">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue" class="active">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container"><h1>Product Catalogue</h1><p>Explore our complete range of premium interior products</p></div>
+    </header>
+
+    <section class="catalogue-hero" style="padding: 80px 0; background: var(--bg-warm);">
+        <div class="container">
+            <div class="catalogue-intro anim-fade-up" style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <span class="section-tag">Curated Excellence</span>
+                <h2 class="section-title">Every Detail Matters</h2>
+                <p class="section-desc">From the grain of the wood to the finish on the metal, every product in our catalogue is selected for quality, durability, and design excellence. Browse by category or explore the full collection.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="catalogue-section" id="catalogue">
+        <div class="container">
+            <div class="catalogue-categories anim-fade-up" style="margin-bottom: 60px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <a href="/catalogue" class="btn {{ 'btn-primary' if not request.args.get('category') else 'btn-outline' }}">All</a>
+                    {% for cat in categories %}
+                    <a href="/catalogue?category={{ cat.category }}" class="btn {{ 'btn-primary' if request.args.get('category') == cat.category else 'btn-outline' }}">{{ cat.category|title }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% set current_cat = '' %}
+            {% for p in products %}
+                {% if p.category != current_cat %}
+                    {% if current_cat != '' %}</div>{% endif %}
+                    <div class="catalogue-category-group anim-fade-up" style="margin-bottom: 80px;">
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 32px;">
+                            <h3 style="font-family: var(--font-display); font-size: 1.8rem; color: var(--primary);">{{ p.category|title }}</h3>
+                            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                        </div>
+                        <div class="catalogue-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;">
+                    {% set current_cat = p.category %}
+                {% endif %}
+
+                <div class="catalogue-card" style="background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; transition: var(--transition);">
+                    <div style="height: 200px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--border) 100%); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative;">
+                        {{ p.emoji }}
+                        {% if p.badge %}<span class="product-badge">{{ p.badge }}</span>{% endif %}
+                    </div>
+                    <div style="padding: 24px;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600;">{{ p.category }}</span>
+                        <h4 style="font-family: var(--font-display); font-size: 1.15rem; margin: 6px 0 12px; color: var(--primary);">{{ p.name }}</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 16px; line-height: 1.6;">{{ p.description[:120] }}...</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                            <div style="background: var(--bg-warm); padding: 8px 12px; border-radius: 6px;">
+                                <span style="font-size: 0.7rem; color: var(--text-lighter); text-transform: uppercase;">Material</span>
+                                <p style="font-size: 0.85rem; font-weight: 600; color: var(--text);">{{ p.material or 'N/A' }}</p>
+                            </div>
+                            <div style="background: var(--bg-warm); padding: 8px 12px; border-radius: 6px;">
+                                <span style="font-size: 0.7rem; color: var(--text-lighter); text-transform: uppercase;">Finish</span>
+                                <p style="font-size: 0.85rem; font-weight: 600; color: var(--text);">{{ p.finish or 'N/A' }}</p>
+                            </div>
+                            <div style="background: var(--bg-warm); padding: 8px 12px; border-radius: 6px;">
+                                <span style="font-size: 0.7rem; color: var(--text-lighter); text-transform: uppercase;">Dimensions</span>
+                                <p style="font-size: 0.85rem; font-weight: 600; color: var(--text);">{{ p.dimensions or 'Custom' }}</p>
+                            </div>
+                            <div style="background: var(--bg-warm); padding: 8px 12px; border-radius: 6px;">
+                                <span style="font-size: 0.7rem; color: var(--text-lighter); text-transform: uppercase;">Rating</span>
+                                <p style="font-size: 0.85rem; font-weight: 600; color: var(--gold);">★ {{ p.rating }}</p>
+                            </div>
+                        </div>
+
+                        {% if p.features %}
+                        <div style="margin-bottom: 16px;">
+                            <span style="font-size: 0.7rem; color: var(--text-lighter); text-transform: uppercase;">Key Features</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                                {% for feat in p.features.split(',') %}
+                                <span style="font-size: 0.75rem; background: var(--primary); color: var(--gold); padding: 3px 10px; border-radius: 12px;">{{ feat.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div style="display: flex; gap: 8px;">
+                            <a href="/vr-walkthrough" class="btn btn-outline" style="flex: 1; padding: 10px 16px; font-size: 0.85rem;">View in VR</a>
+                            <a href="/contact?subject=Quote+for+{{ p.name|replace(' ','+') }}" class="btn btn-primary" style="flex: 1; padding: 10px 16px; font-size: 0.85rem;">Get Quote</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            {% if products|length > 0 %}</div>{% endif %}
+        </div>
+    </section>
+
+    <section style="padding: 80px 0; background: var(--primary); text-align: center;">
+        <div class="container">
+            <span class="section-tag" style="color: var(--gold-light);">Customization</span>
+            <h2 class="section-title light" style="margin-bottom: 16px;">Can't Find What You Need?</h2>
+            <p class="section-desc light" style="margin-bottom: 32px;">We offer fully customized solutions tailored to your space, style, and requirements. Talk to our design team.</p>
+            <a href="/contact" class="btn btn-primary btn-large">Request Custom Design</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 24px 0;">
+                <p>© HNHSquare. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

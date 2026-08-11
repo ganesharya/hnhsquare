@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | HNHSquare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --primary: #1a1a2e; --accent: #e94560; --gold: #c9a96e; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--primary) 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-box { background: white; border-radius: 16px; padding: 48px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo h1 { font-size: 1.8rem; color: var(--primary); }
+.login-logo span { color: var(--gold); }
+.login-logo p { color: #666; font-size: 0.9rem; margin-top: 4px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: #333; }
+.form-control { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
+.form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.1); }
+.btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn:hover { background: #d63d56; }
+.flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+.flash-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.hint { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #999; }
+</style>
+</head>
+<body>
+<div class="login-box">
+    <div class="login-logo"><h1>HN<span>Square</span></h1><p>Admin Panel</p></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for category, message in messages %}<div class="flash flash-{{ category }}">{{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+    <form method="POST" action="/admin/login">
+        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" placeholder="admin@hnhsquare.com" required></div>
+        <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" placeholder="Enter password" required></div>
+        <button type="submit" class="btn">Sign In</button>
+    </form>
+    <p class="hint">Default: admin@hnhsquare.com / admin123</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Walkthrough | Experience Your Home in Virtual Reality | HNHSquare</title>
+    <meta name="description" content="Walk through your future home in VR. Change materials, colors, furniture, and lighting in real-time.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vr.css') }}">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/vr-walkthrough" class="active">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="vr-app">
+        <div class="vr-viewport" id="vrViewport">
+            <div class="vr-scene" id="vrScene">
+                <div class="vr-room" id="vrRoom">
+                    <div class="vr-wall vr-wall-left" id="wallLeft"></div>
+                    <div class="vr-wall vr-wall-right" id="wallRight"></div>
+                    <div class="vr-wall vr-wall-back" id="wallBack"></div>
+                    <div class="vr-floor" id="vrFloor"></div>
+                    <div class="vr-ceiling" id="vrCeiling"></div>
+                    <div class="vr-furniture" id="vrFurniture"></div>
+                </div>
+            </div>
+            <div class="vr-overlay">
+                <div class="vr-hud">
+                    <div class="vr-room-info"><h3 id="vrRoomName">{{ current_house.name if current_house else 'Select a House' }}</h3><p id="vrRoomSize">{{ rooms[0].size if rooms else 'Drag to look around' }}</p></div>
+                    <div class="vr-controls">
+                        <button class="vr-btn" id="vrPrevRoom" title="Previous Room">←</button>
+                        <button class="vr-btn" id="vrFullscreen" title="Fullscreen">⛶</button>
+                        <button class="vr-btn" id="vrNextRoom" title="Next Room">→</button>
+                    </div>
+                </div>
+                <div class="vr-look-hint" id="lookHint">Drag to look around</div>
+            </div>
+        </div>
+
+        <div class="vr-panel" id="vrPanel">
+            <div class="vr-panel-header"><h3>Customize Your Space</h3><button class="vr-panel-toggle" id="vrPanelToggle">−</button></div>
+            <div class="vr-panel-body" id="vrPanelBody">
+                <div class="vr-tabs">
+                    <button class="vr-tab active" data-tab="walls">Walls</button>
+                    <button class="vr-tab" data-tab="floor">Floor</button>
+                    <button class="vr-tab" data-tab="furniture">Furniture</button>
+                    <button class="vr-tab" data-tab="lighting">Lighting</button>
+                    <button class="vr-tab" data-tab="ai-palette">AI Palette</button>
+                </div>
+                <div class="vr-tab-content active" id="tab-walls">
+                    <h4>Wall Colors</h4><div class="vr-swatches" id="wallSwatches"></div>
+                    <h4>Wall Texture</h4><div class="vr-options" id="wallTextures"></div>
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 8px;">Custom Color</label>
+                        <input type="color" id="customWallColor" value="#f5f0e8" style="width: 100%; height: 40px; border: none; border-radius: 6px; cursor: pointer;">
+                    </div>
+                </div>
+                <div class="vr-tab-content" id="tab-floor">
+                    <h4>Floor Material</h4><div class="vr-swatches" id="floorSwatches"></div>
+                    <h4>Floor Pattern</h4><div class="vr-options" id="floorPatterns"></div>
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 8px;">Custom Floor Color</label>
+                        <input type="color" id="customFloorColor" value="#c9a96e" style="width: 100%; height: 40px; border: none; border-radius: 6px; cursor: pointer;">
+                    </div>
+                </div>
+                <div class="vr-tab-content" id="tab-furniture">
+                    <h4>Room Furniture</h4><div class="vr-furniture-list" id="furnitureList"></div>
+                </div>
+                <div class="vr-tab-content" id="tab-lighting">
+                    <h4>Lighting Mood</h4><div class="vr-options" id="lightingOptions"></div>
+                    <h4>Brightness</h4><input type="range" id="brightnessSlider" min="20" max="100" value="80" class="vr-slider">
+                </div>
+                <div class="vr-tab-content" id="tab-ai-palette">
+                    <h4>🎨 AI Color Suggestions</h4>
+                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 16px;">Click a palette to instantly apply AI-curated color combinations.</p>
+                    <div id="aiPalettes" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                </div>
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: rgba(255,255,255,0.8);">Sample Houses</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        {% for h in houses %}
+                        <a href="/vr-walkthrough?house={{ h.id }}" style="padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.7); font-size: 0.85rem; text-decoration: none; transition: 0.2s;">{{ h.name }} ({{ h.style }})</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="xr-enter-btn" id="enterVRBtn" style="width: 100%; justify-content: center;" disabled>
+                    <span>🥽</span> Enter VR Headset Mode
+                </button>
+                <p style="margin-top: 8px; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center;">Requires WebXR-compatible VR headset</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vr.js') }}"></script>
+</body>
+</html>

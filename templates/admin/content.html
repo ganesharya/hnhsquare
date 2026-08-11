@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+{% block title %}Site Content{% endblock %}
+{% block page_title %}Edit Site Content{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h4>Editable Content Blocks</h4><span style="font-size: 0.85rem; color: var(--text-light);">Changes reflect immediately on the website</span></div>
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead><tr><th>Key</th><th>Title</th><th>Preview</th><th>Updated</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for item in content %}
+                <tr>
+                    <td><code style="background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ item.key }}</code></td>
+                    <td>{{ item.title }}</td>
+                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.content }}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-light);">{{ item.updated_at[:10] if item.updated_at else '-' }}</td>
+                    <td><button class="btn btn-sm btn-warning" onclick="editContent('{{ item.key }}', '{{ item.title|replace("'", "\'") }}', '{{ item.content|replace("'", "\'")|replace(chr(10), '\\n') }}')">Edit</button></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align: center; color: var(--text-light);">No content blocks found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h4>+ Add New Content Block</h4></div>
+    <div class="card-body">
+        <form method="POST" action="/admin/content/update">
+            <div class="form-row">
+                <div class="form-group"><label>Content Key (unique ID)</label><input type="text" name="key" class="form-control" placeholder="e.g. hero_title, about_story" required></div>
+                <div class="form-group"><label>Title (for admin reference)</label><input type="text" name="title" class="form-control" placeholder="e.g. Hero Section Title" required></div>
+            </div>
+            <div class="form-group"><label>Content</label><textarea name="content" class="form-control" rows="4" required></textarea></div>
+            <button type="submit" class="btn btn-primary">Save Content Block</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header"><h4>Edit Content</h4><button class="modal-close" onclick="document.getElementById('editModal').classList.remove('active')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" action="/admin/content/update">
+                <div class="form-group"><label>Content Key</label><input type="text" name="key" id="editKey" class="form-control" readonly></div>
+                <div class="form-group"><label>Title</label><input type="text" name="title" id="editTitle" class="form-control" required></div>
+                <div class="form-group"><label>Content</label><textarea name="content" id="editContent" class="form-control" rows="6" required></textarea></div>
+                <button type="submit" class="btn btn-primary">Update Content</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editContent(key, title, content) {
+    document.getElementById('editKey').value = key;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editContent').value = content.replace(/\\n/g, '\n');
+    document.getElementById('editModal').classList.add('active');
+}
+</script>
+{% endblock %}

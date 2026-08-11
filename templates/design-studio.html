@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Design Studio | Free Interior Design AI | HNHSquare</title>
+    <meta name="description" content="Free AI-powered interior design tool. Upload your room, describe your style, and get instant design concepts.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio" class="active">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="page-header"><div class="container"><h1>AI Design Studio</h1><p>Your personal AI interior designer — free, fast, and incredibly smart</p></div></header>
+
+    <section class="design-studio">
+        <div class="container">
+            <div class="design-workspace">
+                <div class="design-sidebar">
+                    <div class="design-step active" id="step1"><div class="step-num">1</div><div class="step-content"><h4>Room Details</h4><p>Tell us about your space</p></div></div>
+                    <div class="design-step" id="step2"><div class="step-num">2</div><div class="step-content"><h4>Style Preferences</h4><p>Choose your aesthetic</p></div></div>
+                    <div class="design-step" id="step3"><div class="step-num">3</div><div class="step-content"><h4>AI Generates</h4><p>Get instant concepts</p></div></div>
+                    <div class="design-step" id="step4"><div class="step-num">4</div><div class="step-content"><h4>Customize & Save</h4><p>Fine-tune your design</p></div></div>
+                </div>
+                <div class="design-main">
+                    <div class="design-panel active" id="panel1">
+                        <h3>Describe Your Room</h3>
+                        <div class="form-group">
+                            <label>Room Type</label>
+                            <select id="roomType" class="form-control"><option value="living">Living Room</option><option value="bedroom">Bedroom</option><option value="kitchen">Kitchen</option><option value="bathroom">Bathroom</option><option value="dining">Dining Room</option><option value="office">Home Office</option></select>
+                        </div>
+                        <div class="form-group"><label>Room Size (approx sq ft)</label><input type="number" id="roomSize" class="form-control" placeholder="e.g. 250" value="250"></div>
+                        <div class="form-group">
+                            <label>Upload Room Photo (optional)</label>
+                            <div class="upload-zone" id="uploadZone"><p>Drag & drop or click to upload</p><span>Supports JPG, PNG (max 10MB)</span></div>
+                            <input type="file" id="roomPhoto" accept="image/*" hidden>
+                        </div>
+                        <button class="btn btn-primary btn-block" id="nextToStep2">Next: Style Preferences →</button>
+                    </div>
+                    <div class="design-panel" id="panel2">
+                        <h3>Choose Your Style</h3>
+                        <div class="style-grid" id="styleGrid"></div>
+                        <div class="form-group"><label>Color Preference</label><div class="color-palette" id="colorPalette"></div></div>
+                        <div class="form-group"><label>Additional Notes</label><textarea id="designNotes" class="form-control" rows="3" placeholder="Any specific requirements?"></textarea></div>
+                        <div class="form-actions"><button class="btn btn-outline" id="backToStep1">← Back</button><button class="btn btn-primary" id="generateDesigns">Generate Designs ✨</button></div>
+                    </div>
+                    <div class="design-panel" id="panel3">
+                        <h3>AI Design Concepts</h3>
+                        <div class="ai-generating" id="aiGenerating"><div class="ai-spinner"></div><p>Our AI is analyzing your preferences...</p><div class="ai-progress"><div class="ai-progress-bar" id="aiProgressBar"></div></div></div>
+                        <div class="design-results" id="designResults" style="display:none;"><div class="results-grid" id="resultsGrid"></div></div>
+                    </div>
+                    <div class="design-panel" id="panel4">
+                        <h3>Customize Your Design</h3>
+                        <div class="design-preview" id="designPreview"></div>
+                        <div style="margin-top: 24px;">
+                            <h4>Instant Design Changes</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                <div class="form-group">
+                                    <label>Wall Color</label>
+                                    <input type="color" id="designWallColor" value="#f5f0e8" class="form-control" style="height: 50px; padding: 4px;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Floor Color</label>
+                                    <input type="color" id="designFloorColor" value="#c9a96e" class="form-control" style="height: 50px; padding: 4px;">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label>Lighting Mood</label>
+                                <select id="designLighting" class="form-control">
+                                    <option value="daylight">Daylight</option>
+                                    <option value="warm">Warm Evening</option>
+                                    <option value="cool">Cool White</option>
+                                    <option value="cozy">Cozy Dim</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label>Furniture Style</label>
+                                <select id="designFurniture" class="form-control">
+                                    <option value="modern">Modern Minimal</option>
+                                    <option value="classic">Classic Luxury</option>
+                                    <option value="scandi">Scandinavian</option>
+                                    <option value="industrial">Industrial</option>
+                                    <option value="japandi">Japandi</option>
+                                    <option value="boho">Bohemian</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions" style="margin-top: 24px;">
+                            <button class="btn btn-outline" id="backToResults">← Back to Results</button>
+                            <a href="/contact?subject=Design+Consultation" class="btn btn-primary">Request Consultation</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/design-ai.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products | HNHSquare Interior Design</title>
+    <meta name="description" content="Browse HNHSquare's premium collection of designer doors, hardware, modular kitchens, wardrobes, and interior furniture.">
+    <link rel="canonical" href="https://hnhsquare.com/products">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products" class="active">Products</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container"><h1>Our Products</h1><p>Premium interior solutions crafted for modern living</p></div>
+    </header>
+
+    <section class="products-page">
+        <div class="container">
+            <div class="products-layout">
+                <aside class="filters-sidebar">
+                    <div class="filter-group">
+                        <h4>Categories</h4>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="doors" checked> Designer Doors</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="hardware" checked> Premium Hardware</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="kitchen" checked> Modular Kitchen</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="wardrobe" checked> Wardrobes</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="furniture" checked> Furniture</label>
+                    </div>
+                    <div class="filter-group">
+                        <h4>Material</h4>
+                        <label class="filter-label"><input type="checkbox" class="filter-mat" value="wood" checked> Wood</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-mat" value="metal" checked> Metal</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-mat" value="glass" checked> Glass</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-mat" value="composite" checked> Composite</label>
+                    </div>
+                </aside>
+                <div class="products-main">
+                    <div class="products-toolbar">
+                        <span id="productCount">Showing {{ products|length }} products</span>
+                    </div>
+                    <div class="products-grid" id="productsGrid">
+                        {% for p in products %}
+                        <div class="product-card" data-id="{{ p.id }}" data-category="{{ p.category }}" data-material="{{ p.material or 'other' }}">
+                            {% if p.badge %}<span class="product-badge">{{ p.badge }}</span>{% endif %}
+                            <div class="product-img" data-emoji="{{ p.emoji }}"></div>
+                            <div class="product-info">
+                                <span class="product-category">{{ p.category }}</span>
+                                <h3 class="product-name">{{ p.name }}</h3>
+                                <p class="product-specs">{{ p.material or '' }} {% if p.dimensions %}· {{ p.dimensions }}{% endif %}</p>
+                                <div class="product-meta">
+                                    <span class="product-rating">★ {{ p.rating }}</span>
+                                </div>
+                                <div class="product-actions">
+                                    <a href="/catalogue#product-{{ p.id }}" class="btn btn-outline">Details</a>
+                                    <a href="/contact?subject=Quote+for+{{ p.name|replace(' ','+') }}" class="btn btn-primary">Get Quote</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer"><div class="container"><div class="footer-bottom"><p>© HNHSquare. All rights reserved.</p></div></div></footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.product-card');
+        const countEl = document.getElementById('productCount');
+
+        function filterProducts() {
+            const cats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
+            const mats = Array.from(document.querySelectorAll('.filter-mat:checked')).map(c => c.value);
+            let visible = 0;
+
+            cards.forEach(card => {
+                const cat = card.dataset.category;
+                const mat = (card.dataset.material || 'other').toLowerCase();
+                const show = cats.includes(cat) && mats.some(m => mat.includes(m));
+                card.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            countEl.textContent = 'Showing ' + visible + ' products';
+        }
+
+        document.querySelectorAll('.filter-cat, .filter-mat').forEach(cb => cb.addEventListener('change', filterProducts));
+    });
+    </script>
+</body>
+</html>

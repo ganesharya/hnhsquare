@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enscape 3D Walkthrough | HNHSquare</title>
+    <meta name="description" content="View immersive Enscape 3D architectural walkthroughs directly in your browser.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1a1a2e; --accent: #e94560; --gold: #c9a96e; --bg: #0a0a0a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        .enscape-header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10,10,10,0.9); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .enscape-header .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+        .enscape-header .logo-icon { width: 32px; height: 32px; background: var(--primary); color: var(--gold); display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700; }
+        .enscape-header h1 { font-size: 1rem; font-weight: 600; }
+        .enscape-header .meta { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+        .enscape-controls { display: flex; gap: 8px; }
+        .enscape-btn {
+            padding: 8px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500;
+            transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .enscape-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .enscape-viewport {
+            position: fixed; top: 57px; left: 0; right: 0; bottom: 0;
+            display: flex;
+        }
+        .enscape-sidebar {
+            width: 300px; background: rgba(20,20,30,0.95); border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+        }
+        .enscape-sidebar h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--gold); }
+        .walkthrough-list { display: flex; flex-direction: column; gap: 8px; }
+        .walkthrough-item {
+            padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; cursor: pointer; transition: 0.2s; text-decoration: none; color: white;
+        }
+        .walkthrough-item:hover, .walkthrough-item.active { border-color: var(--accent); background: rgba(233,69,96,0.1); }
+        .walkthrough-item h4 { font-size: 0.85rem; margin-bottom: 4px; }
+        .walkthrough-item p { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+        .enscape-iframe-container {
+            flex: 1; position: relative; background: #000;
+        }
+        .enscape-iframe-container iframe {
+            width: 100%; height: 100%; border: none;
+        }
+        .enscape-placeholder {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: rgba(255,255,255,0.5);
+        }
+        .enscape-placeholder h2 { font-size: 1.5rem; margin-bottom: 12px; color: white; }
+        .enscape-placeholder p { margin-bottom: 24px; text-align: center; max-width: 400px; }
+        .upload-zone {
+            border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px;
+            padding: 40px; text-align: center; cursor: pointer; transition: 0.2s;
+            max-width: 400px;
+        }
+        .upload-zone:hover { border-color: var(--accent); }
+        .upload-zone h3 { color: white; margin-bottom: 8px; }
+        .upload-zone p { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+        .hotspot-info {
+            padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;
+            font-size: 0.8rem; color: rgba(255,255,255,0.7);
+        }
+        .hotspot-info strong { color: var(--gold); }
+        @media (max-width: 768px) {
+            .enscape-sidebar { width: 0; padding: 0; }
+            .enscape-sidebar.open { width: 280px; padding: 16px; position: fixed; z-index: 99; height: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="enscape-header">
+        <a href="/" class="logo">
+            <div class="logo-icon">H</div>
+            <div>
+                <h1>HNHSquare Enscape Viewer</h1>
+                <div class="meta">Real-time 3D Architectural Walkthrough</div>
+            </div>
+        </a>
+        <div class="enscape-controls">
+            <a href="/vr-walkthrough" class="enscape-btn">← Back to VR Hub</a>
+            <a href="/" class="enscape-btn">Home</a>
+        </div>
+    </div>
+
+    <div class="enscape-viewport">
+        <aside class="enscape-sidebar" id="enscapeSidebar">
+            <div>
+                <h3>📁 Walkthrough Projects</h3>
+                <div class="walkthrough-list">
+                    <a href="/enscape-viewer?project=modern-villa" class="walkthrough-item {{ 'active' if project == 'modern-villa' else '' }}">
+                        <h4>Modern Villa - Bangalore</h4>
+                        <p>3,200 sqft | 4BHK | Modern Minimal</p>
+                    </a>
+                    <a href="/enscape-viewer?project=luxury-apartment" class="walkthrough-item {{ 'active' if project == 'luxury-apartment' else '' }}">
+                        <h4>Luxury Apartment - Mumbai</h4>
+                        <p>1,800 sqft | 3BHK | Classic Luxury</p>
+                    </a>
+                    <a href="/enscape-viewer?project=scandinavian-home" class="walkthrough-item {{ 'active' if project == 'scandinavian-home' else '' }}">
+                        <h4>Scandinavian Home - Pune</h4>
+                        <p>2,400 sqft | 4BHK | Scandinavian</p>
+                    </a>
+                    <a href="/enscape-viewer?project=industrial-loft" class="walkthrough-item {{ 'active' if project == 'industrial-loft' else '' }}">
+                        <h4>Industrial Loft - Delhi</h4>
+                        <p>1,500 sqft | 2BHK | Industrial</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="hotspot-info">
+                <strong>💡 How to use:</strong><br><br>
+                • <strong>WASD</strong> or arrow keys to walk<br>
+                • <strong>Mouse drag</strong> to look around<br>
+                • <strong>Scroll</strong> to zoom<br>
+                • Click objects to inspect<br>
+                • Use the Enscape UI for settings
+            </div>
+
+            <div class="hotspot-info">
+                <strong>📤 Upload your own:</strong><br><br>
+                Export from Enscape as <strong>"Web Standalone"</strong> and upload the HTML file + assets folder to <code>/static/enscape/</code>
+            </div>
+        </aside>
+
+        <div class="enscape-iframe-container" id="viewerContainer">
+            {% if project %}
+                <iframe src="{{ url_for('static', filename='enscape/' + project + '/index.html') }}" allowfullscreen></iframe>
+            {% else %}
+                <div class="enscape-placeholder">
+                    <h2>🏠 Enscape 3D Viewer</h2>
+                    <p>Select a walkthrough project from the sidebar, or upload your own Enscape Web Standalone export.</p>
+                    <div class="upload-zone" onclick="alert('To upload: Export from Enscape as Web Standalone, then place the folder in /static/enscape/')">
+                        <h3>+ Upload Enscape Project</h3>
+                        <p>Drag & drop or click to upload<br>Web Standalone (.html + assets)</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

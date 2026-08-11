@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact HNHSquare | Interior Design Consultation & Support</title>
+<meta name="description" content="Contact HNHSquare for interior design consultations, product inquiries, VR demos, and support.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="nav-container"><a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a><button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button><ul class="nav-menu" id="navMenu"><li><a href="/">Home</a></li><li><a href="/catalogue">Catalogue</a></li><li><a href="/products">Products</a></li><li><a href="/vr-walkthrough">VR Walkthrough</a></li><li><a href="/design-studio">AI Design Studio</a></li><li><a href="/about">About</a></li><li><a href="/contact" class="active">Contact</a></li></ul></div></nav>
+<header class="page-header"><div class="container"><h1>Contact Us</h1><p>We would love to hear from you. Let us design something beautiful together.</p></div></header>
+<section class="contact-section"><div class="container"><div class="contact-grid"><div class="contact-info"><div class="contact-card"><div class="contact-icon">📧</div><h4>Email</h4><p>{{ contact_email }}</p><p>support@hnhsquare.com</p></div><div class="contact-card"><div class="contact-icon">📞</div><h4>Phone</h4><p>{{ contact_phone }}</p><p>Mon-Sat, 9AM - 7PM</p></div><div class="contact-card"><div class="contact-icon">📍</div><h4>Visit Us</h4><p>HNHSquare Design Center</p><p>India</p></div><div class="contact-card"><div class="contact-icon">💬</div><h4>Live Chat</h4><p>Available on WhatsApp</p><p>Response within 5 mins</p></div></div><div class="contact-form-wrap"><h3>Send us a Message</h3><form class="contact-form" id="contactForm" method="POST" action="/contact"><div class="form-row"><div class="form-group"><label>First Name</label><input type="text" name="name" class="form-control" required></div><div class="form-group"><label>Last Name</label><input type="text" class="form-control" required></div></div><div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" required></div><div class="form-group"><label>Phone</label><input type="tel" name="phone" class="form-control"></div><div class="form-group"><label>Interested In</label><select name="subject" class="form-control"><option>General Inquiry</option><option>Product Quote</option><option>VR Demo Booking</option><option>AI Design Consultation</option><option>Installation Service</option><option>Partnership</option></select></div><div class="form-group"><label>Message</label><textarea name="message" class="form-control" rows="4" required></textarea></div><button type="submit" class="btn btn-primary btn-block">Send Message</button></form></div></div></div></section>
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
