@@ -1,12 +1,35 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask import Flask, render_template_string, request, redirect, url_for, session, flash, jsonify, Response
 from functools import wraps
 from datetime import datetime
 import sqlite3
 import hashlib
 import os
 import json
+import base64
+import mimetypes
+from jinja2 import DictLoader, Environment
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+# Embedded assets - no external template/static folders needed
+try:
+    from embedded import TEMPLATES, STATIC_FILES
+except ImportError:
+    TEMPLATES = {}
+    STATIC_FILES = {}
+
+app = Flask(__name__)
+
+# Setup Jinja2 with embedded templates
+app.jinja_loader = DictLoader(TEMPLATES)
+app.jinja_env = Environment(loader=app.jinja_loader)
+
+# Monkey-patch render_template to use embedded templates
+_original_render_template = None
+
+def render_template(template_name, **context):
+    if template_name in TEMPLATES:
+        return render_template_string(TEMPLATES[template_name], **context)
+    raise Exception(f'Template not found: {template_name}')
+
 app.secret_key = os.environ.get('SECRET_KEY', 'hnhsquare-secret-key-2026-change-in-production')
 
 DATABASE = os.environ.get('DATABASE', 'hnhsquare.db')
@@ -291,6 +314,15 @@ def admin_required(f):
     return decorated
 
 # ===================== FRONTEND ROUTES =====================
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    if filename in STATIC_FILES:
+        content = base64.b64decode(STATIC_FILES[filename])
+        mime = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        return Response(content, mimetype=mime)
+    return 'Not found', 404
+
 @app.route('/')
 def home():
     conn = get_db()
@@ -624,7 +656,7 @@ def delete_vr_house(house_id):
 @admin_required
 def admin_enscape():
     import os
-    enscape_dir = os.path.join(app.static_folder, 'enscape')
+    enscape_dir = os.path.join(os.path.dirname(__file__), 'static', 'enscape')
     projects = []
     if os.path.exists(enscape_dir):
         for name in os.listdir(enscape_dir):
