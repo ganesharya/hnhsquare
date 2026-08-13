@@ -584,6 +584,61 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        data = request.get_json() or request.form
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip().lower()
+        phone = data.get('phone', '').strip()
+        password = data.get('password', '')
+        confirm = data.get('confirm_password', '')
+
+        errors = []
+        if not name or len(name) < 2:
+            errors.append('Name must be at least 2 characters')
+        if not email or '@' not in email:
+            errors.append('Please enter a valid email')
+        if not password or len(password) < 6:
+            errors.append('Password must be at least 6 characters')
+        if password != confirm:
+            errors.append('Passwords do not match')
+
+        conn = get_db()
+        existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            errors.append('An account with this email already exists')
+
+        if errors:
+            conn.close()
+            if request.is_json:
+                return jsonify({'success': False, 'errors': errors}), 400
+            for e in errors:
+                flash(e, 'danger')
+            return redirect(url_for('signup'))
+
+        hashed = hash_password(password)
+        conn.execute(
+            "INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, 'customer')",
+            (name, email, phone, hashed)
+        )
+        conn.commit()
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        conn.close()
+
+        session['user_id'] = user['id']
+        session['user_name'] = user['name']
+        session['user_email'] = user['email']
+        session['user_role'] = user['role']
+
+        if request.is_json:
+            return jsonify({'success': True, 'message': 'Account created!', 'name': user['name']})
+        flash('Welcome to HNHSquare! Your account has been created.', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('signup.html')
+
+
 @app.route('/design-request', methods=['POST'])
 def design_request():
     data = request.get_json() or request.form

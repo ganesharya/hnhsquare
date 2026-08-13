@@ -1,1 +1,0 @@
-{"query":"mutation ($serviceId: String!, $environmentId: String!) { serviceInstanceDeploy(serviceId: $serviceId, environmentId: $environmentId) }","variables":{"serviceId":"eac384c5-6028-435a-a8ca-bdd0568d7e3d","environmentId":"29589185-e15b-4fa1-adf0-9e0b3f845d75"}}

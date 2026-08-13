@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | HNHSquare Interior Design</title>
+    <meta name="description" content="Create your HNHSquare account to save designs, track quotes, and manage your interior projects.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); padding: 100px 24px 40px; }
+        .auth-box { background: white; border-radius: var(--radius); padding: 48px; width: 100%; max-width: 460px; box-shadow: var(--shadow-lg); }
+        .auth-logo { text-align: center; margin-bottom: 32px; }
+        .auth-logo a { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .auth-logo span:first-child { width: 40px; height: 40px; background: var(--primary); color: var(--gold); display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 1.2rem; }
+        .auth-logo p { color: var(--text-light); font-size: 0.9rem; margin-top: 6px; }
+        .auth-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--primary); text-align: center; margin-bottom: 24px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.95rem; transition: var(--transition); }
+        .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.1); }
+        .btn-auth { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .btn-auth:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-light); }
+        .auth-footer a { color: var(--accent); font-weight: 600; }
+        .flash { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 20px; font-size: 0.9rem; }
+        .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .password-hint { font-size: 0.75rem; color: var(--text-lighter); margin-top: 4px; }
+        @media (max-width: 480px) { .auth-box { padding: 32px 24px; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <a href="/"><span>H</span><span class="logo-text">HNHSquare</span></a>
+                <p>Create your free account</p>
+            </div>
+            <h1 class="auth-title">Get Started</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/signup" id="signupForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 00000 00000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
+                    <p class="password-hint">Must be at least 6 characters</p>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+                </div>
+                <button type="submit" class="btn-auth">Create Account</button>
+            </form>
+
+            <p class="auth-footer">Already have an account? <a href="/">Sign in from home</a></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('signupForm');
+            const pwd = document.getElementById('password');
+            const confirm = document.getElementById('confirm_password');
+
+            form.addEventListener('submit', function(e) {
+                if (pwd.value !== confirm.value) {
+                    e.preventDefault();
+                    showToast('Passwords do not match');
+                    confirm.focus();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

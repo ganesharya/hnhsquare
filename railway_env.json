@@ -1,1 +1,0 @@
-{"query":"query ($serviceId: String!) { service(id: $serviceId) { id name projectId serviceInstances { edges { node { environmentId } } } } }","variables":{"serviceId":"eac384c5-6028-435a-a8ca-bdd0568d7e3d"}}
