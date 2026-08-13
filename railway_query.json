@@ -1,0 +1,1 @@
+{"query":"query ($serviceId: String!) { deployments(input: { serviceId: $serviceId }) { edges { node { id status createdAt } } } }","variables":{"serviceId":"eac384c5-6028-435a-a8ca-bdd0568d7e3d"}}

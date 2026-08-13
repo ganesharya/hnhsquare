@@ -1,16 +1,18 @@
-// HNHSquare - AI Design Studio
-// Simulated AI interior design generation with instant customization
+// HNHSquare - Enhanced AI Design Studio
+// Simulated AI interior design with budget, materials, save/load, and comparisons
 
 (function() {
     'use strict';
 
     const styles = [
-        { id: 'modern', name: 'Modern Minimal', emoji: '⬜', desc: 'Clean lines, neutral palette' },
-        { id: 'classic', name: 'Classic Luxury', emoji: '👑', desc: 'Ornate details, rich textures' },
-        { id: 'scandi', name: 'Scandinavian', emoji: '🌲', desc: 'Light wood, cozy hygge' },
-        { id: 'industrial', name: 'Industrial', emoji: '🏭', desc: 'Raw materials, exposed elements' },
-        { id: 'bohemian', name: 'Bohemian', emoji: '🌸', desc: 'Eclectic, colorful, layered' },
-        { id: 'japandi', name: 'Japandi', emoji: '🏯', desc: 'Japanese + Scandinavian fusion' }
+        { id: 'modern', name: 'Modern Minimal', emoji: '⬜', desc: 'Clean lines, neutral palette', budgetMultiplier: 1.0 },
+        { id: 'classic', name: 'Classic Luxury', emoji: '👑', desc: 'Ornate details, rich textures', budgetMultiplier: 1.5 },
+        { id: 'scandi', name: 'Scandinavian', emoji: '🌲', desc: 'Light wood, cozy hygge', budgetMultiplier: 0.9 },
+        { id: 'industrial', name: 'Industrial', emoji: '🏭', desc: 'Raw materials, exposed elements', budgetMultiplier: 0.8 },
+        { id: 'bohemian', name: 'Bohemian', emoji: '🌸', desc: 'Eclectic, colorful, layered', budgetMultiplier: 0.7 },
+        { id: 'japandi', name: 'Japandi', emoji: '🏯', desc: 'Japanese + Scandinavian fusion', budgetMultiplier: 1.1 },
+        { id: 'artdeco', name: 'Art Deco', emoji: '💎', desc: 'Glamorous geometric patterns', budgetMultiplier: 1.3 },
+        { id: 'coastal', name: 'Coastal', emoji: '🌊', desc: 'Beachy blues and whites', budgetMultiplier: 0.9 }
     ];
 
     const colors = [
@@ -18,20 +20,35 @@
         '#D4E8E4', '#E8D4E4', '#D4E8D5', '#E8E8D4', '#D5D4E8', '#E4D4E8'
     ];
 
+    const materials = {
+        modern: ['Quartz Countertop', 'Glass Panels', 'Chrome Fixtures', 'Engineered Wood', 'Concrete Accents'],
+        classic: ['Marble Flooring', 'Brass Hardware', 'Velvet Upholstery', 'Oak Wood', 'Crystal Lighting'],
+        scandi: ['Pine Wood', 'Linen Fabrics', 'Ceramic Tiles', 'Birch Furniture', 'Wool Rugs'],
+        industrial: ['Exposed Brick', 'Steel Beams', 'Reclaimed Wood', 'Leather Seating', 'Edison Bulbs'],
+        bohemian: ['Rattan Furniture', 'Macrame Decor', 'Patterned Textiles', 'Vintage Finds', 'Terracotta Pots'],
+        japandi: ['Bamboo', 'Shoji Screens', 'Tatami Mats', 'Washi Paper', 'Stone Accents'],
+        artdeco: ['Mirrored Surfaces', 'Lacquered Wood', 'Gold Leaf', 'Velvet Curtains', 'Geometric Tiles'],
+        coastal: ['Wicker Furniture', 'Driftwood', 'Linen Drapes', 'Sea Glass', 'White Washed Wood']
+    };
+
     const designResults = [
-        { label: 'Option A', desc: 'Balanced layout with focal point', color1: '#f5f0e8', color2: '#c9a96e' },
-        { label: 'Option B', desc: 'Maximized storage & flow', color1: '#e8e4df', color2: '#8b6f4e' },
-        { label: 'Option C', desc: 'Open concept with zones', color1: '#d4c4a8', color2: '#a08050' }
+        { label: 'Option A', desc: 'Balanced layout with focal point', color1: '#f5f0e8', color2: '#c9a96e', layout: 'symmetrical' },
+        { label: 'Option B', desc: 'Maximized storage & flow', color1: '#e8e4df', color2: '#8b6f4e', layout: 'linear' },
+        { label: 'Option C', desc: 'Open concept with zones', color1: '#d4c4a8', color2: '#a08050', layout: 'open' },
+        { label: 'Option D', desc: 'Cozy nook arrangement', color1: '#e8d5d0', color2: '#b8c9d9', layout: 'intimate' }
     ];
 
     let currentStep = 1;
     let selectedStyle = null;
     let selectedColor = null;
     let selectedDesign = null;
+    let savedDesigns = JSON.parse(localStorage.getItem('hnh_ai_designs') || '[]');
 
     function init() {
         renderStyles();
         renderColors();
+        renderBudgetSlider();
+        renderSavedDesigns();
         bindEvents();
     }
 
@@ -52,6 +69,40 @@
         if (!palette) return;
         palette.innerHTML = colors.map((c, i) => `
             <div class="color-swatch ${i === 0 ? 'selected' : ''}" style="background:${c}" data-color="${c}"></div>
+        `).join('');
+    }
+
+    function renderBudgetSlider() {
+        const container = document.getElementById('budgetSliderWrap');
+        if (!container) return;
+        container.innerHTML = `
+            <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:8px;color:var(--text);">Budget Range</label>
+            <input type="range" id="budgetSlider" min="50000" max="1000000" step="50000" value="250000" 
+                style="width:100%;accent-color:var(--accent);" oninput="document.getElementById('budgetDisplay').textContent='₹'+parseInt(this.value).toLocaleString('en-IN')">
+            <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:0.75rem;color:var(--text-light);">₹50,000</span>
+                <span id="budgetDisplay" style="font-size:0.9rem;font-weight:600;color:var(--accent);">₹2,50,000</span>
+                <span style="font-size:0.75rem;color:var(--text-light);">₹10,00,000</span>
+            </div>
+        `;
+    }
+
+    function renderSavedDesigns() {
+        const container = document.getElementById('savedDesignsList');
+        if (!container) return;
+        if (savedDesigns.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-light);font-size:0.85rem;text-align:center;">No saved designs yet</p>';
+            return;
+        }
+        container.innerHTML = savedDesigns.map((d, i) => `
+            <div class="saved-design-card" data-index="${i}" style="padding:12px;background:var(--bg-warm);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:0.2s;">
+                <div style="display:flex;gap:8px;margin-bottom:6px;">
+                    <div style="width:24px;height:24px;background:${d.wallColor};border-radius:4px;"></div>
+                    <div style="width:24px;height:24px;background:${d.floorColor};border-radius:4px;"></div>
+                </div>
+                <div style="font-size:0.85rem;font-weight:600;color:var(--primary);">${d.name}</div>
+                <div style="font-size:0.75rem;color:var(--text-light);">${d.style} • ${d.roomType} • ${d.date}</div>
+            </div>
         `).join('');
     }
 
@@ -80,6 +131,7 @@
             document.querySelectorAll('.style-option').forEach(s => s.classList.remove('selected'));
             opt.classList.add('selected');
             selectedStyle = opt.dataset.style;
+            renderMaterialSuggestions();
         });
 
         // Color selection
@@ -100,6 +152,19 @@
         document.getElementById('designLighting')?.addEventListener('change', updateDesignPreview);
         document.getElementById('designFurniture')?.addEventListener('change', updateDesignPreview);
 
+        // Save design
+        document.getElementById('saveDesignBtn')?.addEventListener('click', saveCurrentDesign);
+
+        // Load saved design
+        document.getElementById('savedDesignsList')?.addEventListener('click', (e) => {
+            const card = e.target.closest('.saved-design-card');
+            if (!card) return;
+            const design = savedDesigns[parseInt(card.dataset.index)];
+            if (design) {
+                loadDesign(design);
+            }
+        });
+
         // Upload zone
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('roomPhoto');
@@ -116,6 +181,18 @@
                 if (fileInput.files.length) showToast('Photo uploaded successfully!');
             });
         }
+    }
+
+    function renderMaterialSuggestions() {
+        const container = document.getElementById('materialSuggestions');
+        if (!container || !selectedStyle) return;
+        const mats = materials[selectedStyle] || [];
+        container.innerHTML = `
+            <h4 style="font-size:0.9rem;margin-bottom:10px;color:var(--primary);">Recommended Materials</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                ${mats.map(m => `<span style="font-size:0.8rem;background:var(--primary);color:var(--gold);padding:6px 14px;border-radius:20px;">${m}</span>`).join('')}
+            </div>
+        `;
     }
 
     function goToStep(step) {
@@ -176,6 +253,8 @@
                 selectedDesign = parseInt(card.dataset.index);
                 setTimeout(() => goToStep(4), 300);
                 renderDesignPreview();
+                renderBudgetEstimate();
+                renderMaterialRecommendations();
             });
         });
     }
@@ -215,6 +294,83 @@
                 </div>
             </div>
         `;
+    }
+
+    function renderBudgetEstimate() {
+        const container = document.getElementById('budgetEstimate');
+        if (!container) return;
+        
+        const budget = parseInt(document.getElementById('budgetSlider')?.value || 250000);
+        const styleMult = styles.find(s => s.id === selectedStyle)?.budgetMultiplier || 1;
+        const estimated = Math.round(budget * styleMult);
+        
+        container.innerHTML = `
+            <div style="background:var(--bg-warm);padding:16px;border-radius:8px;border:1px solid var(--border);margin-top:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:0.85rem;color:var(--text-light);">Your Budget</span>
+                    <span style="font-size:0.9rem;font-weight:600;color:var(--primary);">₹${budget.toLocaleString('en-IN')}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:0.85rem;color:var(--text-light);">Style Multiplier</span>
+                    <span style="font-size:0.9rem;font-weight:600;color:var(--accent);">${styleMult}x</span>
+                </div>
+                <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.9rem;font-weight:600;color:var(--primary);">Estimated Cost</span>
+                    <span style="font-size:1.1rem;font-weight:700;color:var(--success);">₹${estimated.toLocaleString('en-IN')}</span>
+                </div>
+                <p style="font-size:0.75rem;color:var(--text-light);margin-top:8px;">*Estimate includes materials, labor, and installation. Final quote may vary.</p>
+            </div>
+        `;
+    }
+
+    function renderMaterialRecommendations() {
+        const container = document.getElementById('resultMaterials');
+        if (!container || !selectedStyle) return;
+        const mats = materials[selectedStyle] || [];
+        container.innerHTML = `
+            <h4 style="font-size:0.9rem;margin:16px 0 10px;color:var(--primary);">🛠️ Recommended Materials</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                ${mats.map(m => `<span style="font-size:0.8rem;background:var(--primary);color:var(--gold);padding:6px 14px;border-radius:20px;">${m}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    function saveCurrentDesign() {
+        const design = designResults[selectedDesign || 0];
+        const wallColor = document.getElementById('designWallColor')?.value || design.color1;
+        const floorColor = document.getElementById('designFloorColor')?.value || design.color2;
+        const roomType = document.getElementById('roomType')?.value || 'living';
+        
+        const saved = {
+            name: `${styles.find(s => s.id === selectedStyle)?.name || 'Custom'} Design ${savedDesigns.length + 1}`,
+            style: selectedStyle,
+            roomType: roomType,
+            wallColor: wallColor,
+            floorColor: floorColor,
+            lighting: document.getElementById('designLighting')?.value || 'daylight',
+            furniture: document.getElementById('designFurniture')?.value || 'modern',
+            date: new Date().toLocaleDateString()
+        };
+        
+        savedDesigns.push(saved);
+        localStorage.setItem('hnh_ai_designs', JSON.stringify(savedDesigns));
+        renderSavedDesigns();
+        showToast('Design saved to your gallery!');
+    }
+
+    function loadDesign(design) {
+        document.getElementById('designWallColor').value = design.wallColor;
+        document.getElementById('designFloorColor').value = design.floorColor;
+        document.getElementById('designLighting').value = design.lighting;
+        document.getElementById('designFurniture').value = design.furniture;
+        selectedStyle = design.style;
+        
+        goToStep(4);
+        renderDesignPreview();
+        renderBudgetEstimate();
+        renderMaterialRecommendations();
+        showToast(`Loaded ${design.name}`);
     }
 
     function updateDesignPreview() {

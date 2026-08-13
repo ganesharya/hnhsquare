@@ -8,6 +8,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/vr.css') }}">
+    <style>
+        .vr-preset-card {
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .vr-preset-card:hover {
+            border-color: var(--accent);
+            background: rgba(233,69,96,0.1);
+        }
+        .vr-saved-design {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vr-saved-design:hover {
+            border-color: var(--gold);
+            background: rgba(201,169,110,0.1);
+        }
+        .vr-room-info h3 {
+            transition: opacity 0.3s ease;
+        }
+        .vr-room-info p {
+            transition: opacity 0.3s ease;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar" id="navbar">
@@ -43,11 +78,13 @@
                     <div class="vr-room-info"><h3 id="vrRoomName">{{ current_house.name if current_house else 'Select a House' }}</h3><p id="vrRoomSize">{{ rooms[0].size if rooms else 'Drag to look around' }}</p></div>
                     <div class="vr-controls">
                         <button class="vr-btn" id="vrPrevRoom" title="Previous Room">←</button>
+                        <button class="vr-btn" id="vrAutoRotate" title="Auto Rotate">🔄</button>
+                        <button class="vr-btn" id="vrScreenshot" title="Take Screenshot">📷</button>
                         <button class="vr-btn" id="vrFullscreen" title="Fullscreen">⛶</button>
                         <button class="vr-btn" id="vrNextRoom" title="Next Room">→</button>
                     </div>
                 </div>
-                <div class="vr-look-hint" id="lookHint">Drag to look around</div>
+                <div class="vr-look-hint" id="lookHint">Drag to look around • Double-click to auto-rotate</div>
             </div>
         </div>
 
@@ -88,6 +125,10 @@
                     <h4>🎨 AI Color Suggestions</h4>
                     <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 16px;">Click a palette to instantly apply AI-curated color combinations.</p>
                     <div id="aiPalettes" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    
+                    <h4 style="margin-top: 20px;">⚡ Quick Presets</h4>
+                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 12px;">Instant room setups with colors, lighting & furniture.</p>
+                    <div id="roomPresets" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 </div>
                 <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
                     <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: rgba(255,255,255,0.8);">Sample Houses</h4>
@@ -97,13 +138,20 @@
                         {% endfor %}
                     </div>
                 </div>
+                <div style="margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="font-size: 0.85rem; margin-bottom: 10px; color: rgba(255,255,255,0.8);">💾 Saved Designs</h4>
+                    <div id="savedDesigns" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
             </div>
-            <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <button class="xr-enter-btn" id="enterVRBtn" style="width: 100%; justify-content: center;" disabled>
-                    <span>🥽</span> Enter VR Headset Mode
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
+                <button class="xr-enter-btn" id="vrSaveDesign" style="flex: 1; justify-content: center;">
+                    <span>💾</span> Save Design
                 </button>
-                <p style="margin-top: 8px; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center;">Requires WebXR-compatible VR headset</p>
+                <button class="xr-enter-btn" id="enterVRBtn" style="flex: 1; justify-content: center; opacity: 0.5;" disabled>
+                    <span>🥽</span> VR Mode
+                </button>
             </div>
+            <p style="padding: 0 24px 12px; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-align: center;">Designs are saved locally in your browser</p>
         </div>
     </div>
 

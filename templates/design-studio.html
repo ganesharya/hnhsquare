@@ -7,6 +7,40 @@
     <meta name="description" content="Free AI-powered interior design tool. Upload your room, describe your style, and get instant design concepts.">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .saved-designs-sidebar {
+            background: var(--bg-warm);
+            border-left: 1px solid var(--border);
+            padding: 24px;
+            width: 260px;
+            flex-shrink: 0;
+        }
+        .saved-designs-sidebar h4 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+        .saved-design-card {
+            transition: all 0.2s ease;
+        }
+        .saved-design-card:hover {
+            border-color: var(--accent) !important;
+            transform: translateX(4px);
+        }
+        .design-workspace-enhanced {
+            display: grid;
+            grid-template-columns: 240px 1fr 260px;
+            gap: 0;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        @media (max-width: 1024px) {
+            .design-workspace-enhanced { grid-template-columns: 1fr; }
+            .saved-designs-sidebar { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar" id="navbar">
@@ -29,14 +63,18 @@
 
     <section class="design-studio">
         <div class="container">
-            <div class="design-workspace">
+            <div class="design-workspace-enhanced">
                 <div class="design-sidebar">
                     <div class="design-step active" id="step1"><div class="step-num">1</div><div class="step-content"><h4>Room Details</h4><p>Tell us about your space</p></div></div>
                     <div class="design-step" id="step2"><div class="step-num">2</div><div class="step-content"><h4>Style Preferences</h4><p>Choose your aesthetic</p></div></div>
                     <div class="design-step" id="step3"><div class="step-num">3</div><div class="step-content"><h4>AI Generates</h4><p>Get instant concepts</p></div></div>
                     <div class="design-step" id="step4"><div class="step-num">4</div><div class="step-content"><h4>Customize & Save</h4><p>Fine-tune your design</p></div></div>
+                    <div style="margin-top: 24px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px;">💡 Pro Tip</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-lighter); line-height: 1.5;">Upload a photo of your room for more accurate AI-generated designs tailored to your actual space.</p>
+                    </div>
                 </div>
-                <div class="design-main">
+                <div class="design-main" style="padding: 32px;">
                     <div class="design-panel active" id="panel1">
                         <h3>Describe Your Room</h3>
                         <div class="form-group">
@@ -44,6 +82,7 @@
                             <select id="roomType" class="form-control"><option value="living">Living Room</option><option value="bedroom">Bedroom</option><option value="kitchen">Kitchen</option><option value="bathroom">Bathroom</option><option value="dining">Dining Room</option><option value="office">Home Office</option></select>
                         </div>
                         <div class="form-group"><label>Room Size (approx sq ft)</label><input type="number" id="roomSize" class="form-control" placeholder="e.g. 250" value="250"></div>
+                        <div class="form-group" id="budgetSliderWrap"></div>
                         <div class="form-group">
                             <label>Upload Room Photo (optional)</label>
                             <div class="upload-zone" id="uploadZone"><p>Drag & drop or click to upload</p><span>Supports JPG, PNG (max 10MB)</span></div>
@@ -54,6 +93,7 @@
                     <div class="design-panel" id="panel2">
                         <h3>Choose Your Style</h3>
                         <div class="style-grid" id="styleGrid"></div>
+                        <div id="materialSuggestions" style="margin: 20px 0;"></div>
                         <div class="form-group"><label>Color Preference</label><div class="color-palette" id="colorPalette"></div></div>
                         <div class="form-group"><label>Additional Notes</label><textarea id="designNotes" class="form-control" rows="3" placeholder="Any specific requirements?"></textarea></div>
                         <div class="form-actions"><button class="btn btn-outline" id="backToStep1">← Back</button><button class="btn btn-primary" id="generateDesigns">Generate Designs ✨</button></div>
@@ -61,11 +101,16 @@
                     <div class="design-panel" id="panel3">
                         <h3>AI Design Concepts</h3>
                         <div class="ai-generating" id="aiGenerating"><div class="ai-spinner"></div><p>Our AI is analyzing your preferences...</p><div class="ai-progress"><div class="ai-progress-bar" id="aiProgressBar"></div></div></div>
-                        <div class="design-results" id="designResults" style="display:none;"><div class="results-grid" id="resultsGrid"></div></div>
+                        <div class="design-results" id="designResults" style="display:none;">
+                            <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 16px;">Click any design to customize and see the full preview with budget estimate.</p>
+                            <div class="results-grid" id="resultsGrid"></div>
+                        </div>
                     </div>
                     <div class="design-panel" id="panel4">
                         <h3>Customize Your Design</h3>
                         <div class="design-preview" id="designPreview"></div>
+                        <div id="resultMaterials"></div>
+                        <div id="budgetEstimate"></div>
                         <div style="margin-top: 24px;">
                             <h4>Instant Design Changes</h4>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
@@ -101,8 +146,20 @@
                         </div>
                         <div class="form-actions" style="margin-top: 24px;">
                             <button class="btn btn-outline" id="backToResults">← Back to Results</button>
+                            <button class="btn btn-success" id="saveDesignBtn">💾 Save Design</button>
                             <a href="/contact?subject=Design+Consultation" class="btn btn-primary">Request Consultation</a>
                         </div>
+                    </div>
+                </div>
+                <div class="saved-designs-sidebar">
+                    <h4>💾 Your Saved Designs</h4>
+                    <div id="savedDesignsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <div style="margin-top: 20px; padding: 16px; background: white; border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px;">📐 Room Layout</h4>
+                        <div id="layoutPreview" style="width: 100%; height: 160px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--border) 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                            🏠
+                        </div>
+                        <p style="font-size: 0.7rem; color: var(--text-lighter); text-align: center; margin-top: 8px;">Layout updates based on your selections</p>
                     </div>
                 </div>
             </div>
