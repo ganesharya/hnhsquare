@@ -1,1 +1,1 @@
-{"query":"query ($deploymentId: String!) { deploymentLogs(deploymentId: $deploymentId, limit: 10) { timestamp message severity } }","variables":{"deploymentId":"e986d295-3dc2-4df5-b9bb-d15d60099f6c"}}
+{"query":"query ($deploymentId: String!) { deploymentLogs(deploymentId: $deploymentId, limit: 8) { timestamp message severity } }","variables":{"deploymentId":"6b741315-46f3-415a-8107-48f064092c64"}}
