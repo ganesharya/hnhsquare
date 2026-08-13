@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, url_for, session, flash, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from functools import wraps
 from datetime import datetime
 import sqlite3
@@ -7,7 +7,7 @@ import os
 import json
 import base64
 import mimetypes
-from jinja2 import DictLoader, Environment
+from jinja2 import DictLoader
 
 # Embedded assets - no external template/static folders needed
 try:
@@ -20,15 +20,7 @@ app = Flask(__name__)
 
 # Setup Jinja2 with embedded templates
 app.jinja_loader = DictLoader(TEMPLATES)
-app.jinja_env = Environment(loader=app.jinja_loader)
-
-# Monkey-patch render_template to use embedded templates
-_original_render_template = None
-
-def render_template(template_name, **context):
-    if template_name in TEMPLATES:
-        return render_template_string(TEMPLATES[template_name], **context)
-    raise Exception(f'Template not found: {template_name}')
+app.jinja_env.loader = app.jinja_loader
 
 app.secret_key = os.environ.get('SECRET_KEY', 'hnhsquare-secret-key-2026-change-in-production')
 
