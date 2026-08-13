@@ -508,14 +508,99 @@ def admin_dashboard():
         'total_products': conn.execute("SELECT COUNT(*) as c FROM products WHERE active = 1").fetchone()['c'],
         'total_users': conn.execute("SELECT COUNT(*) as c FROM users WHERE role = 'customer'").fetchone()['c'],
         'new_contacts': conn.execute("SELECT COUNT(*) as c FROM contacts WHERE status = 'new'").fetchone()['c'],
+        'read_contacts': conn.execute("SELECT COUNT(*) as c FROM contacts WHERE status = 'read'").fetchone()['c'],
         'new_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'new'").fetchone()['c'],
+        'read_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'read'").fetchone()['c'],
         'total_houses': conn.execute("SELECT COUNT(*) as c FROM vr_houses WHERE active = 1").fetchone()['c']
     }
+
+    # Weekly stats (last 7 days)
+    from datetime import datetime, timedelta
+    weekly_stats = []
+    max_val = 1
+    for i in range(6, -1, -1):
+        day = datetime.now() - timedelta(days=i)
+        day_start = day.strftime('%Y-%m-%d 00:00:00')
+        day_end = day.strftime('%Y-%m-%d 23:59:59')
+        contacts = conn.execute(
+            "SELECT COUNT(*) as c FROM contacts WHERE created_at BETWEEN ? AND ?",
+            (day_start, day_end)
+        ).fetchone()['c']
+        designs = conn.execute(
+            "SELECT COUNT(*) as c FROM design_requests WHERE created_at BETWEEN ? AND ?",
+            (day_start, day_end)
+        ).fetchone()['c']
+        weekly_stats.append({
+            'label': day.strftime('%a'),
+            'contacts': contacts,
+            'designs': designs
+        })
+        max_val = max(max_val, contacts, designs)
+    for s in weekly_stats:
+        s['contact_pct'] = min(100, int(s['contacts'] / max_val * 100)) if max_val else 0
+        s['design_pct'] = min(100, int(s['designs'] / max_val * 100)) if max_val else 0
+
+    # Category breakdown with emoji mapping
+    cat_emojis = {'doors': '🚪', 'hardware': '🔧', 'kitchen': '🍳', 'wardrobe': '👔', 'furniture': '🪑'}
+    cats = conn.execute("SELECT category, COUNT(*) as cnt FROM products WHERE active = 1 GROUP BY category").fetchall()
+    total_cat = sum(c['cnt'] for c in cats) or 1
+    category_stats = []
+    for c in cats:
+        category_stats.append({
+            'category': c['category'],
+            'count': c['cnt'],
+            'emoji': cat_emojis.get(c['category'], '📦'),
+            'pct': int(c['cnt'] / total_cat * 100)
+        })
+    category_stats.sort(key=lambda x: -x['count'])
+
+    # Recent activity feed (combined contacts + designs)
     recent_contacts = conn.execute("SELECT * FROM contacts ORDER BY created_at DESC LIMIT 5").fetchall()
     recent_designs = conn.execute("SELECT * FROM design_requests ORDER BY created_at DESC LIMIT 5").fetchall()
+
+    activity_items = []
+    for c in recent_contacts:
+        dt = datetime.strptime(c['created_at'], '%Y-%m-%d %H:%M:%S')
+        diff = datetime.now() - dt
+        if diff.days > 0:
+            time_ago = f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            time_ago = f"{diff.seconds // 3600}h ago"
+        else:
+            time_ago = f"{diff.seconds // 60}m ago"
+        activity_items.append({
+            'type': 'contact',
+            'icon': '✉️',
+            'title': c['name'],
+            'subtitle': c['subject'] or 'General Inquiry',
+            'status': c['status'],
+            'time_ago': time_ago,
+            'ts': c['created_at']
+        })
+    for d in recent_designs:
+        dt = datetime.strptime(d['created_at'], '%Y-%m-%d %H:%M:%S')
+        diff = datetime.now() - dt
+        if diff.days > 0:
+            time_ago = f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            time_ago = f"{diff.seconds // 3600}h ago"
+        else:
+            time_ago = f"{diff.seconds // 60}m ago"
+        activity_items.append({
+            'type': 'design',
+            'icon': '🎨',
+            'title': d['name'],
+            'subtitle': f"{d['room_type']} - {d['style']}",
+            'status': d['status'],
+            'time_ago': time_ago,
+            'ts': d['created_at']
+        })
+    activity_items.sort(key=lambda x: x['ts'], reverse=True)
+    recent_activity = activity_items[:10]
+
     conn.close()
-    return render_template('admin/dashboard.html', stats=stats,
-                           recent_contacts=recent_contacts, recent_designs=recent_designs)
+    return render_template('admin/dashboard.html', stats=stats, weekly_stats=weekly_stats,
+                           category_stats=category_stats, recent_activity=recent_activity)
 
 @app.route('/admin/products')
 @admin_required

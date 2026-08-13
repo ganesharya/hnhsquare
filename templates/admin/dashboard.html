@@ -2,48 +2,200 @@
 {% block title %}Dashboard{% endblock %}
 {% block page_title %}Dashboard Overview{% endblock %}
 {% block content %}
+
+<!-- Stats Row -->
 <div class="stats-grid">
-    <div class="stat-card"><h5>Active Products</h5><div class="value">{{ stats.total_products }}</div></div>
-    <div class="stat-card"><h5>Customers</h5><div class="value">{{ stats.total_users }}</div></div>
-    <div class="stat-card"><h5>New Contacts</h5><div class="value" style="color: var(--warning);">{{ stats.new_contacts }}</div></div>
-    <div class="stat-card"><h5>Design Requests</h5><div class="value" style="color: var(--success);">{{ stats.new_designs }}</div></div>
-    <div class="stat-card"><h5>VR Houses</h5><div class="value">{{ stats.total_houses }}</div></div>
-</div>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-    <div class="card">
-        <div class="card-header"><h4>Quick Actions</h4></div>
-        <div class="card-body" style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="/admin/products" class="btn btn-primary" style="justify-content: center;">+ Add New Product</a>
-            <a href="/admin/content" class="btn btn-success" style="justify-content: center;">Edit Site Content</a>
-            <a href="/admin/contacts" class="btn btn-warning" style="justify-content: center;">Check New Inquiries</a>
-            <a href="/admin/vr-houses" class="btn btn-primary" style="justify-content: center;">+ Add VR House</a>
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">&#128722;</div>
+        <div class="stat-info">
+            <h5>Active Products</h5>
+            <div class="value">{{ stats.total_products }}</div>
+            <span class="stat-label">in catalogue</span>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header"><h4>Recent Inquiries</h4><a href="/admin/contacts" class="btn btn-sm btn-primary">View All</a></div>
-        <div class="card-body" style="padding: 0;">
-            <table class="table">
-                <thead><tr><th>Name</th><th>Subject</th><th>Status</th></tr></thead>
-                <tbody>
-                    {% for c in recent_contacts %}
-                    <tr><td>{{ c.name }}</td><td>{{ c.subject }}</td><td><span class="status-badge status-{{ c.status }}">{{ c.status|title }}</span></td></tr>
-                    {% else %}<tr><td colspan="3" style="text-align: center; color: var(--text-light);">No contacts</td></tr>{% endfor %}
-                </tbody>
-            </table>
+    <div class="stat-card stat-success">
+        <div class="stat-icon">&#128100;</div>
+        <div class="stat-info">
+            <h5>Customers</h5>
+            <div class="value">{{ stats.total_users }}</div>
+            <span class="stat-label">registered users</span>
+        </div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">&#9993;</div>
+        <div class="stat-info">
+            <h5>New Contacts</h5>
+            <div class="value">{{ stats.new_contacts }}</div>
+            <span class="stat-label">unread inquiries</span>
+        </div>
+    </div>
+    <div class="stat-card stat-accent">
+        <div class="stat-icon">&#127912;</div>
+        <div class="stat-info">
+            <h5>Design Requests</h5>
+            <div class="value">{{ stats.new_designs }}</div>
+            <span class="stat-label">pending designs</span>
+        </div>
+    </div>
+    <div class="stat-card stat-info">
+        <div class="stat-icon">&#127968;</div>
+        <div class="stat-info">
+            <h5>VR Houses</h5>
+            <div class="value">{{ stats.total_houses }}</div>
+            <span class="stat-label">walkthroughs</span>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-header"><h4>Design Requests</h4><a href="/admin/design-requests" class="btn btn-sm btn-primary">View All</a></div>
-    <div class="card-body" style="padding: 0;">
-        <table class="table">
-            <thead><tr><th>Name</th><th>Room</th><th>Style</th><th>Status</th></tr></thead>
-            <tbody>
-                {% for d in recent_designs %}
-                <tr><td>{{ d.name }}</td><td>{{ d.room_type }}</td><td>{{ d.style }}</td><td><span class="status-badge status-{{ d.status }}">{{ d.status|title }}</span></td></tr>
-                {% else %}<tr><td colspan="4" style="text-align: center; color: var(--text-light);">No requests</td></tr>{% endfor %}
-            </tbody>
-        </table>
+
+<!-- Main Dashboard Grid -->
+<div class="dash-grid">
+    <!-- Left Column -->
+    <div class="dash-col">
+        <!-- Weekly Activity Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Weekly Activity</h4>
+                <span class="text-muted">Last 7 days</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    {% for day in weekly_stats %}
+                    <div class="chart-bar-group">
+                        <div class="chart-bars">
+                            <div class="chart-bar chart-bar-contacts" style="height: {{ day.contact_pct }}%" title="{{ day.contacts }} contacts"></div>
+                            <div class="chart-bar chart-bar-designs" style="height: {{ day.design_pct }}%" title="{{ day.designs }} designs"></div>
+                        </div>
+                        <span class="chart-label">{{ day.label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="chart-legend">
+                    <span><span class="legend-dot" style="background: var(--accent)"></span>Contacts</span>
+                    <span><span class="legend-dot" style="background: var(--gold)"></span>Design Requests</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Categories -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Products by Category</h4>
+                <a href="/admin/products" class="btn btn-sm btn-primary">Manage</a>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% for cat in category_stats %}
+                <div class="category-row">
+                    <div class="category-info">
+                        <span class="category-emoji">{{ cat.emoji }}</span>
+                        <span class="category-name">{{ cat.category|title }}</span>
+                    </div>
+                    <div class="category-bar-wrap">
+                        <div class="category-bar-bg">
+                            <div class="category-bar" style="width: {{ cat.pct }}%"></div>
+                        </div>
+                    </div>
+                    <span class="category-count">{{ cat.count }}</span>
+                </div>
+                {% else %}
+                <div style="padding: 24px; text-align: center; color: var(--text-light);">No products yet</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="dash-col">
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header"><h4>Quick Actions</h4></div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    <a href="/admin/products" class="qa-btn qa-primary">
+                        <span class="qa-icon">&#10133;</span>
+                        <span class="qa-text">Add Product</span>
+                    </a>
+                    <a href="/admin/content" class="qa-btn qa-success">
+                        <span class="qa-icon">&#9998;</span>
+                        <span class="qa-text">Edit Content</span>
+                    </a>
+                    <a href="/admin/vr-houses" class="qa-btn qa-info">
+                        <span class="qa-icon">&#127968;</span>
+                        <span class="qa-text">Add VR House</span>
+                    </a>
+                    <a href="/admin/contacts" class="qa-btn qa-warning">
+                        <span class="qa-icon">&#9993;</span>
+                        <span class="qa-text">Check Inquiries {% if stats.new_contacts > 0 %}<span class="qa-badge">{{ stats.new_contacts }}</span>{% endif %}</span>
+                    </a>
+                    <a href="/admin/design-requests" class="qa-btn qa-accent">
+                        <span class="qa-icon">&#127912;</span>
+                        <span class="qa-text">Design Requests {% if stats.new_designs > 0 %}<span class="qa-badge">{{ stats.new_designs }}</span>{% endif %}</span>
+                    </a>
+                    <a href="/admin/users" class="qa-btn qa-default">
+                        <span class="qa-icon">&#128101;</span>
+                        <span class="qa-text">View Users</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Overview -->
+        <div class="card">
+            <div class="card-header"><h4>Inquiry Status</h4></div>
+            <div class="card-body">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-dot" style="background: var(--warning)"></span>
+                        <div>
+                            <div class="status-num">{{ stats.new_contacts }}</div>
+                            <div class="status-label">New Contacts</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot" style="background: var(--success)"></span>
+                        <div>
+                            <div class="status-num">{{ stats.read_contacts }}</div>
+                            <div class="status-label">Read Contacts</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot" style="background: var(--accent)"></span>
+                        <div>
+                            <div class="status-num">{{ stats.new_designs }}</div>
+                            <div class="status-label">New Designs</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot" style="background: var(--info)"></span>
+                        <div>
+                            <div class="status-num">{{ stats.read_designs }}</div>
+                            <div class="status-label">Read Designs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Recent Activity</h4>
+                <span class="text-muted">Latest 10 items</span>
+            </div>
+            <div class="card-body" style="padding: 0; max-height: 400px; overflow-y: auto;">
+                {% for item in recent_activity %}
+                <div class="activity-item">
+                    <div class="activity-icon activity-{{ item.type }}">{{ item.icon }}</div>
+                    <div class="activity-content">
+                        <div class="activity-title">{{ item.title }}</div>
+                        <div class="activity-meta">{{ item.subtitle }} &middot; {{ item.time_ago }}</div>
+                    </div>
+                    <span class="status-badge status-{{ item.status }}">{{ item.status|title }}</span>
+                </div>
+                {% else %}
+                <div style="padding: 24px; text-align: center; color: var(--text-light);">No recent activity</div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
