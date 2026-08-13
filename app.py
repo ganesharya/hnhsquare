@@ -305,6 +305,124 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+# ===================== BLOG DATA =====================
+BLOG_POSTS = [
+    {
+        'slug': '2026-interior-design-trends',
+        'title': 'Top 10 Interior Design Trends for 2026',
+        'category': 'trends',
+        'author': 'HNH Design Team',
+        'date': 'August 10, 2026',
+        'read_time': '6 min',
+        'emoji': '🔮',
+        'gradient': '#667eea 0%, #764ba2 100%',
+        'excerpt': 'From biophilic design to smart home integration, discover the trends shaping Indian homes this year.',
+        'content': '<p>Interior design in India is evolving rapidly. In 2026, we are seeing a strong shift toward biophilic design — bringing nature indoors with living walls, natural materials, and abundant natural light.</p><h2>1. Biophilic Design</h2><p>Indoor gardens, moss walls, and natural wood textures are dominating premium homes across Bangalore, Mumbai, and Delhi.</p><h2>2. Smart Home Integration</h2><p>Voice-controlled lighting, automated curtains, and AI-powered climate control are becoming standard in luxury interiors.</p><h2>3. Japandi Fusion</h2><p>The blend of Japanese wabi-sabi and Scandinavian hygge continues to gain popularity for its calm, minimalist aesthetic.</p><h2>4. Sustainable Materials</h2><p>Reclaimed wood, bamboo, and recycled metal are the materials of choice for eco-conscious homeowners.</p><h2>5. Bold Color Accents</h2><p>While neutral bases remain popular, bold accent walls in terracotta, sage green, and dusty blue are making statements.</p><p>Stay ahead of the curve by incorporating these trends into your next interior project.</p>'
+    },
+    {
+        'slug': 'modular-kitchen-guide',
+        'title': 'The Complete Guide to Modular Kitchens in India',
+        'category': 'guides',
+        'author': 'Kitchen Expert Team',
+        'date': 'August 5, 2026',
+        'read_time': '8 min',
+        'emoji': '🍳',
+        'gradient': '#f093fb 0%, #f5576c 100%',
+        'excerpt': 'Everything you need to know about designing a modular kitchen that fits your space, budget, and cooking style.',
+        'content': '<p>Modular kitchens have revolutionized Indian homes. Unlike traditional carpentry, modular kitchens offer flexibility, efficiency, and style.</p><h2>Planning Your Layout</h2><p>The golden triangle — connecting your stove, sink, and refrigerator — should be the foundation of your kitchen design. Popular layouts include L-shape, U-shape, and parallel kitchens.</p><h2>Material Choices</h2><p>Marine plywood, BWP plywood, and HDHMR are the top choices for Indian kitchens due to their moisture resistance. For countertops, quartz offers the best balance of durability and aesthetics.</p><h2>Storage Solutions</h2><p>Corner carousels, pull-out pantries, and tall units maximize every inch of space. Soft-close drawers and hydraulic lifts add convenience.</p><p>Invest in quality hardware — it determines the lifespan of your kitchen.</p>'
+    },
+    {
+        'slug': 'vr-interior-design',
+        'title': 'How VR is Transforming Interior Design',
+        'category': 'technology',
+        'author': 'Tech Team',
+        'date': 'July 28, 2026',
+        'read_time': '5 min',
+        'emoji': '🥽',
+        'gradient': '#4facfe 0%, #00f2fe 100%',
+        'excerpt': 'Virtual reality is changing how homeowners visualize and experience their spaces before construction begins.',
+        'content': '<p>Virtual Reality (VR) is no longer just for gaming. In interior design, VR walkthroughs are becoming essential tools for architects, designers, and homeowners.</p><h2>Experience Before Building</h2><p>With VR, you can walk through your future home, change wall colors in real-time, swap furniture, and test different lighting moods — all before a single brick is laid.</p><h2>Cost Savings</h2><p>By identifying design issues early, VR prevents costly changes during construction. Studies show VR can reduce design revision costs by up to 40%.</p><h2>The Future</h2><p>As VR headsets become more affordable and WebXR technology matures, every homeowner will soon be able to experience their dream space before it exists.</p>'
+    },
+    {
+        'slug': 'choosing-right-door',
+        'title': 'How to Choose the Perfect Door for Your Home',
+        'category': 'guides',
+        'author': 'Doors & Hardware Team',
+        'date': 'July 20, 2026',
+        'read_time': '5 min',
+        'emoji': '🚪',
+        'gradient': '#43e97b 0%, #38f9d7 100%',
+        'excerpt': 'Solid wood, engineered, or glass? Learn which door material suits your home, climate, and security needs.',
+        'content': '<p>Doors are more than entry points — they define your home\'s character and security. Here is how to choose wisely.</p><h2>Solid Wood Doors</h2><p>Teak, oak, and mahogany offer unmatched beauty and durability. Best for main entrances where security and aesthetics matter most.</p><h2>Engineered Wood Doors</h2><p>More stable than solid wood, resistant to warping. Ideal for interior rooms where climate control varies.</p><h2>Glass Doors</h2><p>Perfect for balconies, patios, and office partitions. Choose tempered glass for safety and frosted options for privacy.</p><h2>Hardware Matters</h2><p>Invest in quality hinges, handles, and locks. A beautiful door with cheap hardware is a wasted investment.</p>'
+    },
+    {
+        'slug': 'ai-design-tools',
+        'title': 'AI Tools Every Homeowner Should Know About',
+        'category': 'technology',
+        'author': 'AI Team',
+        'date': 'July 15, 2026',
+        'read_time': '4 min',
+        'emoji': '🤖',
+        'gradient': '#fa709a 0%, #fee140 100%',
+        'excerpt': 'From AI color palette generators to room layout optimizers, discover the tools making interior design accessible to everyone.',
+        'content': '<p>Artificial Intelligence is democratizing interior design. You no longer need a professional designer to create a beautiful space.</p><h2>AI Color Palette Generators</h2><p>Upload a photo of your room, and AI suggests color combinations that complement your existing furniture and lighting.</p><h2>Room Layout Optimizers</h2><p>Input your room dimensions, and AI generates optimal furniture arrangements considering traffic flow, lighting, and functionality.</p><h2>Style Matchers</h2><p>Describe your aesthetic preferences, and AI curates product recommendations from thousands of options — saving hours of browsing.</p><p>At HNHSquare, our AI Design Studio combines all these capabilities in one easy-to-use platform.</p>'
+    },
+    {
+        'slug': 'small-space-design',
+        'title': 'Maximizing Small Spaces: Design Tips for Compact Homes',
+        'category': 'tips',
+        'author': 'Design Team',
+        'date': 'July 8, 2026',
+        'read_time': '5 min',
+        'emoji': '🏠',
+        'gradient': '#a8edea 0%, #fed6e3 100%',
+        'excerpt': 'Living in a compact apartment? These space-saving design tricks will make your home feel twice as large.',
+        'content': '<p>Small spaces do not mean compromising on style or functionality. With the right approach, even a studio apartment can feel spacious.</p><h2>Multi-Functional Furniture</h2><p>Invest in pieces that serve multiple purposes — sofa beds, extendable dining tables, and storage ottomans.</p><h2>Vertical Storage</h2><p>Floor-to-ceiling shelves and wall-mounted cabinets draw the eye upward, creating the illusion of height.</p><h2>Mirror Magic</h2><p>Strategically placed mirrors reflect light and visually double your space. Full-length mirrors on wardrobe doors are a classic trick.</p><h2>Light Colors</h2><p>Light wall colors and minimal patterns make rooms feel airier. Add depth with textured fabrics rather than bold prints.</p>'
+    }
+]
+
+# ===================== BLOG ROUTES =====================
+@app.route('/blog')
+def blog_listing():
+    category = request.args.get('category', '')
+    featured = BLOG_POSTS[0]
+    if category:
+        posts = [p for p in BLOG_POSTS if p['category'] == category]
+    else:
+        posts = BLOG_POSTS[1:]
+    categories = list(set(p['category'] for p in BLOG_POSTS))
+    return render_template('blog.html', posts=posts, featured=featured, categories=categories, active_category=category)
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    post = next((p for p in BLOG_POSTS if p['slug'] == slug), None)
+    if not post:
+        return 'Post not found', 404
+    related = [p for p in BLOG_POSTS if p['category'] == post['category'] and p['slug'] != slug][:3]
+    return render_template('blog-post.html', post=post, related=related)
+
+# ===================== CUSTOMER DASHBOARD =====================
+@app.route('/dashboard')
+@login_required
+def customer_dashboard():
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+    contacts = conn.execute("SELECT * FROM contacts WHERE email = ? ORDER BY created_at DESC LIMIT 10", (session.get('user_email', ''),)).fetchall()
+    conn.close()
+    
+    # Mock saved designs from localStorage (would be fetched via API in real app)
+    saved_designs = []
+    wishlist_items = []
+    
+    return render_template('dashboard.html', 
+                           user=user,
+                           contacts=contacts,
+                           saved_designs=saved_designs,
+                           wishlist_items=wishlist_items,
+                           saved_count=len(saved_designs),
+                           wishlist_count=len(wishlist_items),
+                           quote_count=len(contacts))
+
 # ===================== FRONTEND ROUTES =====================
 
 @app.route('/static/<path:filename>')
@@ -335,7 +453,9 @@ def products_page():
         products = conn.execute("SELECT * FROM products WHERE active = 1").fetchall()
     cats = conn.execute("SELECT category, COUNT(*) as cnt FROM products WHERE active = 1 GROUP BY category").fetchall()
     conn.close()
-    return render_template('products.html', products=products, category=category, categories=cats)
+    # Convert to plain dicts for JSON serialization in template
+    products_json = [dict(p) for p in products]
+    return render_template('products.html', products=products, products_json=products_json, category=category, categories=cats)
 
 @app.route('/catalogue')
 def catalogue_page():

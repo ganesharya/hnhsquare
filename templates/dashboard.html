@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard | HNHSquare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .dashboard-wrapper { display: flex; min-height: 100vh; background: var(--bg-warm); padding-top: 72px; }
+        .dashboard-sidebar { width: 260px; background: white; border-right: 1px solid var(--border); padding: 32px 24px; position: fixed; height: calc(100vh - 72px); overflow-y: auto; }
+        .dashboard-sidebar h3 { font-size: 1rem; color: var(--primary); margin-bottom: 20px; }
+        .dashboard-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: var(--text-light); font-size: 0.9rem; text-decoration: none; transition: var(--transition); margin-bottom: 4px; }
+        .dashboard-nav a:hover, .dashboard-nav a.active { background: var(--bg-warm); color: var(--accent); }
+        .dashboard-main { flex: 1; margin-left: 260px; padding: 40px; max-width: 1000px; }
+        .dashboard-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 32px; margin-bottom: 24px; }
+        .dashboard-card h2 { font-family: var(--font-display); font-size: 1.3rem; color: var(--primary); margin-bottom: 20px; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-box { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; text-align: center; }
+        .stat-box .num { font-family: var(--font-display); font-size: 1.8rem; color: var(--accent); font-weight: 600; }
+        .stat-box .label { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
+        .saved-item { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-warm); border-radius: 8px; margin-bottom: 10px; }
+        .saved-item-emoji { width: 48px; height: 48px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid var(--border); }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
+        .empty-state div { font-size: 3rem; margin-bottom: 12px; }
+        @media (max-width: 768px) { .dashboard-sidebar { display: none; } .dashboard-main { margin-left: 0; } .profile-grid { grid-template-columns: 1fr; } .stat-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar" style="position: fixed;">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/vr-walkthrough">VR</a></li>
+                <li><a href="/design-studio">AI Studio</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard-wrapper">
+        <aside class="dashboard-sidebar">
+            <h3>My Account</h3>
+            <nav class="dashboard-nav">
+                <a href="#overview" class="active">📊 Overview</a>
+                <a href="#profile">👤 Profile</a>
+                <a href="#saved-designs">🎨 Saved Designs</a>
+                <a href="#wishlist">♡ Wishlist</a>
+                <a href="#quotes">📋 Quotes</a>
+                <a href="#settings">⚙️ Settings</a>
+            </nav>
+        </aside>
+        
+        <main class="dashboard-main">
+            <div class="stat-row anim-fade-up">
+                <div class="stat-box">
+                    <div class="num">{{ saved_count }}</div>
+                    <div class="label">Saved Designs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="num">{{ wishlist_count }}</div>
+                    <div class="label">Wishlist Items</div>
+                </div>
+                <div class="stat-box">
+                    <div class="num">{{ quote_count }}</div>
+                    <div class="label">Quote Requests</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card anim-fade-up" id="profile">
+                <h2>👤 Profile Information</h2>
+                <div class="profile-grid">
+                    <div class="form-group">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block;">Full Name</label>
+                        <input type="text" value="{{ user.name }}" class="form-control" readonly style="background: var(--bg-warm);">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block;">Email</label>
+                        <input type="email" value="{{ user.email }}" class="form-control" readonly style="background: var(--bg-warm);">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block;">Phone</label>
+                        <input type="tel" value="{{ user.phone or 'Not provided' }}" class="form-control" readonly style="background: var(--bg-warm);">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block;">Member Since</label>
+                        <input type="text" value="{{ user.created_at }}" class="form-control" readonly style="background: var(--bg-warm);">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card anim-fade-up" id="saved-designs">
+                <h2>🎨 Saved Designs</h2>
+                {% if saved_designs %}
+                    {% for design in saved_designs %}
+                    <div class="saved-item">
+                        <div class="saved-item-emoji">🎨</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--primary);">{{ design.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">{{ design.style }} • {{ design.roomType }} • {{ design.date }}</div>
+                        </div>
+                        <a href="/design-studio" class="btn btn-sm btn-outline">View</a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div>🎨</div>
+                        <h4 style="color: var(--primary); margin-bottom: 8px;">No saved designs yet</h4>
+                        <p style="margin-bottom: 16px;">Try the AI Design Studio to create and save your first design.</p>
+                        <a href="/design-studio" class="btn btn-primary">Create Design</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-card anim-fade-up" id="wishlist">
+                <h2>♡ Wishlist</h2>
+                {% if wishlist_items %}
+                    {% for item in wishlist_items %}
+                    <div class="saved-item">
+                        <div class="saved-item-emoji">{{ item.emoji }}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--primary);">{{ item.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">{{ item.category|title }} • ★ {{ item.rating }}</div>
+                        </div>
+                        <a href="/contact?subject=Quote+for+{{ item.name|replace(' ','+') }}" class="btn btn-sm btn-primary">Get Quote</a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div>♡</div>
+                        <h4 style="color: var(--primary); margin-bottom: 8px;">Your wishlist is empty</h4>
+                        <p style="margin-bottom: 16px;">Browse our catalogue and click the heart icon to save products.</p>
+                        <a href="/products" class="btn btn-primary">Browse Products</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-card anim-fade-up" id="quotes">
+                <h2>📋 Quote Requests</h2>
+                {% if contacts %}
+                    {% for c in contacts %}
+                    <div class="saved-item">
+                        <div class="saved-item-emoji">📋</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--primary);">{{ c.subject or 'General Inquiry' }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">{{ c.message[:60] }}... • Status: <span style="color: var(--accent); font-weight: 600;">{{ c.status|title }}</span></div>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-lighter);">{{ c.created_at }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div>📋</div>
+                        <h4 style="color: var(--primary); margin-bottom: 8px;">No quote requests</h4>
+                        <p style="margin-bottom: 16px;">Contact us to request a quote for any product.</p>
+                        <a href="/contact" class="btn btn-primary">Contact Us</a>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

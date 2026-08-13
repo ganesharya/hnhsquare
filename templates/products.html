@@ -8,6 +8,32 @@
     <link rel="canonical" href="https://hnhsquare.com/products">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .products-search-bar { max-width: 500px; margin: 0 auto 32px; position: relative; }
+        .products-search-bar input { width: 100%; padding: 14px 50px 14px 20px; border: 2px solid var(--border); border-radius: var(--radius); font-family: var(--font-body); font-size: 1rem; transition: var(--transition); }
+        .products-search-bar input:focus { outline: none; border-color: var(--accent); }
+        .products-search-bar span { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+        .products-sort { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .sort-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; background: white; font-size: 0.85rem; cursor: pointer; transition: var(--transition); }
+        .sort-btn:hover, .sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .compare-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 16px 24px; display: none; align-items: center; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+        .compare-bar.active { display: flex; }
+        .compare-items { display: flex; gap: 12px; }
+        .compare-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg-warm); border-radius: 20px; font-size: 0.8rem; }
+        .quick-view-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 24px; }
+        .quick-view-modal.active { display: flex; }
+        .quick-view-content { background: white; border-radius: var(--radius); max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .quick-view-header { padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .quick-view-body { padding: 24px; }
+        .quick-view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .quick-view-img { height: 220px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--border) 100%); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+        .feature-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+        .feature-tag { font-size: 0.75rem; background: var(--primary); color: var(--gold); padding: 3px 10px; border-radius: 12px; }
+        .wishlist-btn { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; background: white; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; box-shadow: var(--shadow); z-index: 2; transition: var(--transition); }
+        .wishlist-btn:hover { transform: scale(1.1); }
+        .wishlist-btn.active { background: var(--accent); color: white; }
+        @media (max-width: 768px) { .quick-view-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
     <nav class="navbar" id="navbar">
@@ -30,17 +56,23 @@
         <div class="container"><h1>Our Products</h1><p>Premium interior solutions crafted for modern living</p></div>
     </header>
 
-    <section class="products-page">
+    <section class="products-page" style="padding: 60px 0;">
         <div class="container">
+            <!-- Search Bar -->
+            <div class="products-search-bar anim-fade-up">
+                <input type="text" id="productSearch" placeholder="Search products by name, material, or feature...">
+                <span>🔍</span>
+            </div>
+
             <div class="products-layout">
-                <aside class="filters-sidebar">
+                <aside class="filters-sidebar anim-fade-up">
                     <div class="filter-group">
                         <h4>Categories</h4>
-                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="doors" checked> Designer Doors</label>
-                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="hardware" checked> Premium Hardware</label>
-                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="kitchen" checked> Modular Kitchen</label>
-                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="wardrobe" checked> Wardrobes</label>
-                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="furniture" checked> Furniture</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="doors" checked> 🚪 Designer Doors</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="hardware" checked> 🔧 Premium Hardware</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="kitchen" checked> 🍳 Modular Kitchen</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="wardrobe" checked> 👔 Wardrobes</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-cat" value="furniture" checked> 🪑 Furniture</label>
                     </div>
                     <div class="filter-group">
                         <h4>Material</h4>
@@ -49,26 +81,38 @@
                         <label class="filter-label"><input type="checkbox" class="filter-mat" value="glass" checked> Glass</label>
                         <label class="filter-label"><input type="checkbox" class="filter-mat" value="composite" checked> Composite</label>
                     </div>
+                    <div class="filter-group">
+                        <h4>Rating</h4>
+                        <label class="filter-label"><input type="checkbox" class="filter-rating" value="4.5" checked> ★ 4.5+</label>
+                        <label class="filter-label"><input type="checkbox" class="filter-rating" value="4.7" checked> ★ 4.7+</label>
+                    </div>
                 </aside>
                 <div class="products-main">
-                    <div class="products-toolbar">
-                        <span id="productCount">Showing {{ products|length }} products</span>
+                    <div class="products-toolbar anim-fade-up" style="margin-bottom: 24px;">
+                        <span id="productCount" style="font-size: 0.9rem; color: var(--text-light);">Showing {{ products|length }} products</span>
+                        <div class="products-sort">
+                            <span style="font-size: 0.85rem; color: var(--text-light);">Sort by:</span>
+                            <button class="sort-btn active" data-sort="default">Default</button>
+                            <button class="sort-btn" data-sort="rating">Rating</button>
+                            <button class="sort-btn" data-sort="name">Name</button>
+                        </div>
                     </div>
                     <div class="products-grid" id="productsGrid">
                         {% for p in products %}
-                        <div class="product-card" data-id="{{ p.id }}" data-category="{{ p.category }}" data-material="{{ p.material or 'other' }}">
+                        <div class="product-card hover-lift" data-id="{{ p.id }}" data-category="{{ p.category }}" data-material="{{ p.material or 'other' }}" data-rating="{{ p.rating }}" data-name="{{ p.name }}" data-features="{{ p.features or '' }}">
+                            <button class="wishlist-btn" data-id="{{ p.id }}" title="Add to wishlist">♡</button>
                             {% if p.badge %}<span class="product-badge">{{ p.badge }}</span>{% endif %}
                             <div class="product-img" data-emoji="{{ p.emoji }}"></div>
                             <div class="product-info">
-                                <span class="product-category">{{ p.category }}</span>
+                                <span class="product-category">{{ p.category|title }}</span>
                                 <h3 class="product-name">{{ p.name }}</h3>
                                 <p class="product-specs">{{ p.material or '' }} {% if p.dimensions %}· {{ p.dimensions }}{% endif %}</p>
                                 <div class="product-meta">
                                     <span class="product-rating">★ {{ p.rating }}</span>
                                 </div>
-                                <div class="product-actions">
-                                    <a href="/catalogue#product-{{ p.id }}" class="btn btn-outline">Details</a>
-                                    <a href="/contact?subject=Quote+for+{{ p.name|replace(' ','+') }}" class="btn btn-primary">Get Quote</a>
+                                <div class="product-actions" style="display: flex; gap: 8px;">
+                                    <button class="btn btn-outline quick-view-btn" data-id="{{ p.id }}" style="flex: 1; padding: 10px 16px; font-size: 0.85rem;">Quick View</button>
+                                    <a href="/contact?subject=Quote+for+{{ p.name|replace(' ','+') }}" class="btn btn-primary" style="flex: 1; padding: 10px 16px; font-size: 0.85rem;">Get Quote</a>
                                 </div>
                             </div>
                         </div>
@@ -79,31 +123,144 @@
         </div>
     </section>
 
+    <!-- Quick View Modal -->
+    <div class="quick-view-modal" id="quickViewModal">
+        <div class="quick-view-content">
+            <div class="quick-view-header">
+                <h3 id="qvTitle" style="font-family: var(--font-display); color: var(--primary);">Product Details</h3>
+                <button class="modal-close" id="qvClose" style="position: static;">×</button>
+            </div>
+            <div class="quick-view-body" id="qvBody"></div>
+        </div>
+    </div>
+
+    <!-- Compare Bar -->
+    <div class="compare-bar" id="compareBar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-weight: 600; color: var(--primary);">Compare</span>
+            <div class="compare-items" id="compareItems"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="compareBtn" style="padding: 8px 20px;">Compare Now</button>
+    </div>
+
     <footer class="footer"><div class="container"><div class="footer-bottom"><p>© HNHSquare. All rights reserved.</p></div></div></footer>
 
+    <div class="toast" id="toast"></div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.product-card');
+    (function() {
+        const cards = Array.from(document.querySelectorAll('.product-card'));
         const countEl = document.getElementById('productCount');
+        const searchInput = document.getElementById('productSearch');
+        const productsData = {{ products_json|tojson }};
 
         function filterProducts() {
             const cats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
             const mats = Array.from(document.querySelectorAll('.filter-mat:checked')).map(c => c.value);
-            let visible = 0;
-
+            const ratings = Array.from(document.querySelectorAll('.filter-rating:checked')).map(c => parseFloat(c.value));
+            const query = searchInput.value.toLowerCase().trim();
+            const sortType = document.querySelector('.sort-btn.active')?.dataset.sort || 'default';
+            
+            let visible = [];
             cards.forEach(card => {
                 const cat = card.dataset.category;
                 const mat = (card.dataset.material || 'other').toLowerCase();
-                const show = cats.includes(cat) && mats.some(m => mat.includes(m));
-                card.style.display = show ? '' : 'none';
-                if (show) visible++;
+                const rating = parseFloat(card.dataset.rating);
+                const name = (card.dataset.name || '').toLowerCase();
+                const features = (card.dataset.features || '').toLowerCase();
+                
+                const catMatch = cats.includes(cat);
+                const matMatch = mats.some(m => mat.includes(m));
+                const ratingMatch = ratings.length === 0 || ratings.some(r => rating >= r);
+                const searchMatch = !query || name.includes(query) || features.includes(query) || mat.includes(query);
+                
+                if (catMatch && matMatch && ratingMatch && searchMatch) {
+                    card.style.display = '';
+                    visible.push(card);
+                } else {
+                    card.style.display = 'none';
+                }
             });
-            countEl.textContent = 'Showing ' + visible + ' products';
+            
+            // Sort
+            if (sortType === 'rating') {
+                visible.sort((a, b) => parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating));
+            } else if (sortType === 'name') {
+                visible.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+            }
+            
+            // Reorder in DOM
+            const grid = document.getElementById('productsGrid');
+            visible.forEach(card => grid.appendChild(card));
+            
+            countEl.textContent = 'Showing ' + visible.length + ' products';
         }
 
-        document.querySelectorAll('.filter-cat, .filter-mat').forEach(cb => cb.addEventListener('change', filterProducts));
-    });
+        // Filter events
+        document.querySelectorAll('.filter-cat, .filter-mat, .filter-rating').forEach(cb => cb.addEventListener('change', filterProducts));
+        searchInput.addEventListener('input', filterProducts);
+        
+        // Sort buttons
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                filterProducts();
+            });
+        });
+
+        // Quick View
+        const modal = document.getElementById('quickViewModal');
+        document.querySelectorAll('.quick-view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.dataset.id);
+                const product = productsData.find(p => p.id === id);
+                if (!product) return;
+                
+                document.getElementById('qvTitle').textContent = product.name;
+                document.getElementById('qvBody').innerHTML = `
+                    <div class="quick-view-grid">
+                        <div class="quick-view-img">${product.emoji}</div>
+                        <div>
+                            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600;">${product.category}</span>
+                            <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin: 8px 0; color: var(--primary);">${product.name}</h2>
+                            <div style="display: flex; gap: 16px; margin: 12px 0; flex-wrap: wrap;">
+                                <div><span style="font-size: 0.7rem; color: var(--text-lighter);">Material</span><p style="font-weight: 600;">${product.material || 'N/A'}</p></div>
+                                <div><span style="font-size: 0.7rem; color: var(--text-lighter);">Finish</span><p style="font-weight: 600;">${product.finish || 'N/A'}</p></div>
+                                <div><span style="font-size: 0.7rem; color: var(--text-lighter);">Dimensions</span><p style="font-weight: 600;">${product.dimensions || 'Custom'}</p></div>
+                                <div><span style="font-size: 0.7rem; color: var(--text-lighter);">Rating</span><p style="font-weight: 600; color: var(--gold);">★ ${product.rating}</p></div>
+                            </div>
+                            <p style="color: var(--text-light); line-height: 1.6; margin-bottom: 12px;">${product.description}</p>
+                            ${product.features ? `<div class="feature-tags">${product.features.split(',').map(f => `<span class="feature-tag">${f.trim()}</span>`).join('')}</div>` : ''}
+                            <div style="display: flex; gap: 10px; margin-top: 16px;">
+                                <a href="/vr-walkthrough" class="btn btn-outline">View in VR</a>
+                                <a href="/contact?subject=Quote+for+${encodeURIComponent(product.name)}" class="btn btn-primary">Get Quote</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                modal.classList.add('active');
+            });
+        });
+
+        document.getElementById('qvClose')?.addEventListener('click', () => modal.classList.remove('active'));
+        modal?.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+        // Wishlist
+        document.querySelectorAll('.wishlist-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                btn.classList.toggle('active');
+                btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
+                showToast(btn.classList.contains('active') ? 'Added to wishlist!' : 'Removed from wishlist');
+            });
+        });
+
+        // Keyboard escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') modal.classList.remove('active');
+        });
+    })();
     </script>
 </body>
 </html>

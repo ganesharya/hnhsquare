@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Blog | Interior Design Tips & Trends | HNHSquare</title>
+    <meta name="description" content="Explore interior design tips, trends, and inspiration from HNHSquare's design experts.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .blog-hero { padding: 140px 0 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; text-align: center; }
+        .blog-hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 12px; }
+        .blog-hero p { color: rgba(255,255,255,0.7); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 32px; padding: 80px 0; }
+        .blog-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; transition: var(--transition); }
+        .blog-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .blog-card-img { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; }
+        .blog-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.3), transparent); }
+        .blog-card-category { position: absolute; top: 12px; left: 12px; background: var(--accent); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 4px; z-index: 2; }
+        .blog-card-body { padding: 24px; }
+        .blog-card-meta { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px; }
+        .blog-card h3 { font-family: var(--font-display); font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; line-height: 1.4; }
+        .blog-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; margin-bottom: 16px; }
+        .blog-card-read { font-weight: 600; color: var(--accent); font-size: 0.9rem; }
+        .featured-post { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 48px; }
+        .featured-post-img { height: 100%; min-height: 350px; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+        .featured-post-body { padding: 40px; }
+        .featured-post-body h2 { font-family: var(--font-display); font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; }
+        @media (max-width: 768px) { .featured-post { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/blog" class="active">Blog</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="blog-hero">
+        <div class="container">
+            <h1>Design Journal</h1>
+            <p>Interior design tips, trends, and inspiration from our expert team</p>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0; background: var(--bg-warm);">
+        <div class="container">
+            {% if featured %}
+            <div class="featured-post anim-fade-up">
+                <div class="featured-post-img" style="background: linear-gradient(135deg, {{ featured.gradient }});">{{ featured.emoji }}</div>
+                <div class="featured-post-body">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600;">{{ featured.category }}</span>
+                    <h2>{{ featured.title }}</h2>
+                    <div style="display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-light); margin-bottom: 12px;">
+                        <span>{{ featured.date }}</span>
+                        <span>{{ featured.read_time }} read</span>
+                    </div>
+                    <p style="color: var(--text-light); line-height: 1.7; margin-bottom: 20px;">{{ featured.excerpt }}</p>
+                    <a href="/blog/{{ featured.slug }}" class="btn btn-primary">Read Article →</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; justify-content: center;">
+                <a href="/blog" class="btn {{ 'btn-primary' if not active_category else 'btn-outline' }}">All</a>
+                {% for cat in categories %}
+                <a href="/blog?category={{ cat }}" class="btn {{ 'btn-primary' if active_category == cat else 'btn-outline' }}">{{ cat|title }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="blog-grid">
+                {% for post in posts %}
+                <a href="/blog/{{ post.slug }}" class="blog-card anim-fade-up" style="text-decoration: none; color: inherit;">
+                    <div class="blog-card-img" style="background: linear-gradient(135deg, {{ post.gradient }});">
+                        <span class="blog-card-category">{{ post.category|title }}</span>
+                        {{ post.emoji }}
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span>{{ post.date }}</span>
+                            <span>{{ post.read_time }} read</span>
+                        </div>
+                        <h3>{{ post.title }}</h3>
+                        <p>{{ post.excerpt[:120] }}...</p>
+                        <span class="blog-card-read">Read More →</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer"><div class="container"><div class="footer-bottom"><p>© HNHSquare. All rights reserved.</p></div></div></footer>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
