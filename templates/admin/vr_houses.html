@@ -2,19 +2,48 @@
 {% block title %}VR Houses{% endblock %}
 {% block page_title %}VR Design Houses{% endblock %}
 {% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All VR Houses</h2>
+    <button class="btn btn-primary" onclick="document.getElementById('addHouseModal').classList.add('active')">+ Add VR House</button>
+</div>
+
 <div class="card" style="margin-bottom: 24px;">
-    <div class="card-header"><h4>All VR Houses</h4><button class="btn btn-primary" onclick="document.getElementById('addHouseModal').classList.add('active')">+ Add VR House</button></div>
     <div class="card-body" style="padding: 0;">
         <table class="table">
-            <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Size</th><th>Rooms</th><th>Style</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Type</th><th>Size</th><th>Rooms</th><th>Style</th><th>Actions</th></tr></thead>
             <tbody>
                 {% for h in houses %}
-                <tr><td>{{ h.id }}</td><td><strong>{{ h.name }}</strong></td><td>{{ h.type|title }}</td><td>{{ h.size_sqft }} sqft</td><td>{{ h.rooms }}</td><td>{{ h.style }}</td><td><a href="/admin/vr-house/delete/{{ h.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this house and all its rooms?')">Delete</a></td></tr>
+                <tr>
+                    <td>{{ h.id }}</td>
+                    <td>
+                        {% if h.image_url %}
+                        <img src="{{ h.image_url }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+                        {% else %}
+                        <div style="width: 60px; height: 60px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">&#127968;</div>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ h.name }}</strong></td>
+                    <td>{{ h.type|title }}</td>
+                    <td>{{ h.size_sqft }} sqft</td>
+                    <td>{{ h.rooms }}</td>
+                    <td>{{ h.style }}</td>
+                    <td>
+                        <form method="POST" action="/admin/vr-house/upload-image/{{ h.id }}" enctype="multipart/form-data" style="display: inline-flex; gap: 6px; align-items: center;">
+                            <input type="file" name="image" accept="image/*" class="form-control" style="width: 120px; padding: 4px; font-size: 0.75rem;" required>
+                            <button type="submit" class="btn btn-sm btn-success">Upload</button>
+                        </form>
+                        <a href="/admin/vr-house/delete/{{ h.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this house and all its rooms?')">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No VR houses yet</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
 <div class="modal" id="addHouseModal">
     <div class="modal-content">
         <div class="modal-header"><h4>Add VR House</h4><button class="modal-close" onclick="document.getElementById('addHouseModal').classList.remove('active')">&times;</button></div>
