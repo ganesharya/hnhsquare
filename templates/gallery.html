@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | HNHSquare</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .gallery-hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 80px 20px; text-align: center; color: white; }
+        .gallery-hero h1 { font-family: 'Playfair Display', serif; font-size: 3rem; margin-bottom: 12px; }
+        .gallery-hero p { font-size: 1.1rem; opacity: 0.8; max-width: 600px; margin: 0 auto; }
+        .gallery-section { padding: 60px 20px; max-width: 1200px; margin: 0 auto; }
+        .gallery-section h2 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 32px; text-align: center; color: #1a1a2e; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .gallery-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; }
+        .gallery-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+        .gallery-card img { width: 100%; height: 220px; object-fit: cover; display: block; }
+        .gallery-card-body { padding: 20px; }
+        .gallery-card-body h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; color: #1a1a2e; }
+        .gallery-card-body p { font-size: 0.85rem; color: #636e72; margin: 0; }
+        .gallery-card-body .tag { display: inline-block; background: #f5f0e8; color: #c9a96e; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-top: 10px; }
+        .gallery-empty { text-align: center; padding: 60px 20px; color: #636e72; }
+        .gallery-empty svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.4; }
+        @media (max-width: 768px) { .gallery-hero h1 { font-size: 2rem; } .gallery-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/gallery" class="active">Gallery</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+                {% if session.get('user_id') %}
+                <li><a href="/dashboard">{{ session.get('user_name', 'Account') }}</a></li>
+                <li><a href="/logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup" class="btn btn-primary" style="padding:8px 20px;font-size:0.85rem;margin-left:8px;">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <section class="gallery-hero">
+        <h1>Our Gallery</h1>
+        <p>Explore our portfolio of premium interiors, VR walkthroughs, and AI-generated designs.</p>
+    </section>
+
+    {% if products %}
+    <section class="gallery-section">
+        <h2>&#128722; Products</h2>
+        <div class="gallery-grid">
+            {% for p in products %}
+            <div class="gallery-card">
+                <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+                <div class="gallery-card-body">
+                    <h3>{{ p.emoji or '' }} {{ p.name }}</h3>
+                    <p>{{ p.category|title }} &middot; {{ p.material or '' }}</p>
+                    <span class="tag">{{ p.finish or 'Premium' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if houses %}
+    <section class="gallery-section" style="background: #f8f9fa;">
+        <h2>&#127968; VR Houses</h2>
+        <div class="gallery-grid">
+            {% for h in houses %}
+            <div class="gallery-card">
+                <img src="{{ h.image_url }}" alt="{{ h.name }}" loading="lazy">
+                <div class="gallery-card-body">
+                    <h3>{{ h.name }}</h3>
+                    <p>{{ h.type|title }} &middot; {{ h.size_sqft }} sqft &middot; {{ h.rooms }} rooms</p>
+                    <span class="tag">{{ h.style }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if designs %}
+    <section class="gallery-section">
+        <h2>&#127912; AI Design Showcase</h2>
+        <div class="gallery-grid">
+            {% for d in designs %}
+            <div class="gallery-card">
+                <img src="{{ d.image_url }}" alt="{{ d.room_type }} Design" loading="lazy">
+                <div class="gallery-card-body">
+                    <h3>{{ d.room_type }} Design</h3>
+                    <p>{{ d.style or 'Custom' }} Style &middot; {{ d.room_size or '' }}</p>
+                    <span class="tag">{{ d.budget or 'Custom Budget' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not products and not houses and not designs %}
+    <section class="gallery-empty">
+        <div style="font-size: 4rem; margin-bottom: 16px;">&#128248;</div>
+        <h2 style="font-family: 'Playfair Display', serif; color: #1a1a2e;">Gallery Coming Soon</h2>
+        <p>Our team is curating the best interior designs, VR walkthroughs, and product shots.<br>Check back soon for inspiration!</p>
+    </section>
+    {% endif %}
+
+    <footer style="background: #1a1a2e; color: white; padding: 40px 20px; text-align: center;">
+        <p style="opacity: 0.6; font-size: 0.9rem;">&copy; 2026 HNHSquare. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

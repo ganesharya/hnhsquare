@@ -382,6 +382,7 @@ def admin_required(f):
     return decorated
 
 @app.route('/blog')
+@app.route('/blog')
 def blog_listing():
     category = request.args.get('category', '')
     featured = BLOG_POSTS[0]
@@ -399,6 +400,15 @@ def blog_post(slug):
         return 'Post not found', 404
     related = [p for p in BLOG_POSTS if p['category'] == post['category'] and p['slug'] != slug][:3]
     return render_template('blog-post.html', post=post, related=related)
+
+@app.route('/gallery')
+def gallery():
+    conn = get_db()
+    products = conn.execute("SELECT * FROM products WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC").fetchall()
+    houses = conn.execute("SELECT * FROM vr_houses WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC").fetchall()
+    designs = conn.execute("SELECT * FROM design_requests WHERE image_url IS NOT NULL ORDER BY created_at DESC LIMIT 12").fetchall()
+    conn.close()
+    return render_template('gallery.html', products=products, houses=houses, designs=designs)
 
 # ===================== CUSTOMER DASHBOARD =====================
 @app.route('/dashboard')
