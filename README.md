@@ -95,3 +95,4 @@ See [DEPLOY.md](DEPLOY.md) for detailed instructions.
 - Change `SECRET_KEY` environment variable in production (do NOT use default)
 - Replace default admin password immediately after first login
 - Railway auto-provides HTTPS once custom domain is connected
+# Deployment trigger
