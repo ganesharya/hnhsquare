@@ -325,6 +325,22 @@ def init_db():
         c.execute("ALTER TABLE design_requests ADD COLUMN image_url TEXT")
     except sqlite3.OperationalError:
         pass
+    try:
+        c.execute("ALTER TABLE products ADD COLUMN image_url TEXT")
+    except sqlite3.OperationalError:
+        pass
+
+    conn.commit()
+    conn.close()
+    print("Database initialized!")
+    try:
+        c.execute("ALTER TABLE vr_houses ADD COLUMN image_url TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE design_requests ADD COLUMN image_url TEXT")
+    except sqlite3.OperationalError:
+        pass
 
     conn.commit()
     conn.close()
@@ -365,7 +381,6 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
-@app.route('/blog')
 @app.route('/blog')
 def blog_listing():
     category = request.args.get('category', '')
@@ -981,6 +996,26 @@ def delete_product(product_id):
     conn.commit()
     conn.close()
     flash('Product deleted!', 'success')
+    return redirect(url_for('admin_products'))
+
+@app.route('/admin/product/upload-image/<int:product_id>', methods=['POST'])
+@admin_required
+def upload_product_image(product_id):
+    file = request.files.get('image')
+    if not file:
+        flash('No image provided', 'danger')
+        return redirect(url_for('admin_products'))
+    filename = f"product_{product_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+    upload_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+    image_url = f'/static/uploads/{filename}'
+    conn = get_db()
+    conn.execute("UPDATE products SET image_url = ? WHERE id = ?", (image_url, product_id))
+    conn.commit()
+    conn.close()
+    flash('Product image uploaded!', 'success')
     return redirect(url_for('admin_products'))
 
 @app.route('/admin/users')

@@ -2,20 +2,106 @@
 {% block title %}Products{% endblock %}
 {% block page_title %}Product Management{% endblock %}
 {% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Products</h2>
+    <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('active')">+ Add Product</button>
+</div>
+
 <div class="card" style="margin-bottom: 24px;">
-    <div class="card-header"><h4>All Products</h4><button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('active')">+ Add Product</button></div>
     <div class="card-body" style="padding: 0;">
         <table class="table">
-            <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Material</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Material</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for p in products %}
-                <tr><td>{{ p.id }}</td><td><strong>{{ p.name }}</strong> {{ p.emoji }}</td><td>{{ p.category|title }}</td><td>{{ p.material or '-' }}</td><td><span class="status-badge status-{{ 'delivered' if p.active else 'cancelled' }}">{{ 'Active' if p.active else 'Inactive' }}</span></td><td><button class="btn btn-sm btn-warning" onclick="editProduct({{ p.id }}, '{{ p.name|replace("'", "\'") }}', '{{ p.category }}', '{{ p.material|replace("'", "\'") }}', '{{ p.dimensions|replace("'", "\'") }}', '{{ p.finish|replace("'", "\'") }}', '{{ p.badge }}', '{{ p.description|replace("'", "\'") }}', '{{ p.features|replace("'", "\'") }}', '{{ p.emoji }}', {{ p.rating }}, {{ p.active }})" style="margin-right: 4px;">Edit</button><a href="/admin/product/delete/{{ p.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this product?')">Delete</a></td></tr>
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>
+                        {% if p.image_url %}
+                        <img src="{{ p.image_url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+                        {% else %}
+                        <div style="width: 50px; height: 50px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">{{ p.emoji or '📦' }}</div>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ p.name }}</strong></td>
+                    <td>{{ p.category|title }}</td>
+                    <td>{{ p.material or '-' }}</td>
+                    <td><span class="status-badge status-{{ 'delivered' if p.active else 'cancelled' }}">{{ 'Active' if p.active else 'Inactive' }}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editProduct({{ p.id }}, '{{ p.name|replace("'", "\\'") }}', '{{ p.category }}', '{{ p.material|replace("'", "\\'") }}', '{{ p.dimensions|replace("'", "\\'") }}', '{{ p.finish|replace("'", "\\'") }}', '{{ p.badge|replace("'", "\\'") }}', '{{ p.description|replace("'", "\\'") }}', '{{ p.features|replace("'", "\\'") }}', '{{ p.emoji }}', {{ p.rating }}, {{ p.active }})" style="margin-right: 4px;">Edit</button>
+                        <form method="POST" action="/admin/product/upload-image/{{ p.id }}" enctype="multipart/form-data" style="display: inline-flex; gap: 4px; align-items: center;">
+                            <input type="file" name="image" accept="image/*" class="form-control" style="width: 80px; padding: 3px; font-size: 0.7rem;" required>
+                            <button type="submit" class="btn btn-sm btn-success">&#128247;</button>
+                        </form>
+                        <a href="/admin/product/delete/{{ p.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this product?')">Delete</a>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-<div class="modal" id="addModal"><div class="modal-content"><div class="modal-header"><h4>Add New Product</h4><button class="modal-close" onclick="document.getElementById('addModal').classList.remove('active')">&times;</button></div><div class="modal-body"><form method="POST" action="/admin/product/add"><div class="form-row"><div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required></div><div class="form-group"><label>Category</label><select name="category" class="form-control" required><option value="doors">Doors</option><option value="hardware">Hardware</option><option value="kitchen">Kitchen</option><option value="wardrobe">Wardrobe</option><option value="furniture">Furniture</option></select></div></div><div class="form-row"><div class="form-group"><label>Material</label><input type="text" name="material" class="form-control"></div><div class="form-group"><label>Dimensions</label><input type="text" name="dimensions" class="form-control" placeholder="e.g. 84 x 36 x 2"></div></div><div class="form-row"><div class="form-group"><label>Finish</label><input type="text" name="finish" class="form-control"></div><div class="form-group"><label>Badge</label><input type="text" name="badge" class="form-control" placeholder="e.g. Sale, New, Premium"></div></div><div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" name="emoji" class="form-control" value="📦" maxlength="2"></div><div class="form-group"><label>Rating</label><input type="number" name="rating" class="form-control" value="4.5" step="0.1" min="0" max="5"></div></div><div class="form-group"><label>Description</label><textarea name="description" class="form-control" rows="3"></textarea></div><div class="form-group"><label>Features (comma separated)</label><input type="text" name="features" class="form-control" placeholder="e.g. Hand-carved, Weather-resistant"></div><button type="submit" class="btn btn-primary">Add Product</button></form></div></div></div>
-<div class="modal" id="editModal"><div class="modal-content"><div class="modal-header"><h4>Edit Product</h4><button class="modal-close" onclick="document.getElementById('editModal').classList.remove('active')">&times;</button></div><div class="modal-body"><form method="POST" id="editForm" action=""><div class="form-row"><div class="form-group"><label>Name</label><input type="text" name="name" id="editName" class="form-control" required></div><div class="form-group"><label>Category</label><select name="category" id="editCategory" class="form-control" required><option value="doors">Doors</option><option value="hardware">Hardware</option><option value="kitchen">Kitchen</option><option value="wardrobe">Wardrobe</option><option value="furniture">Furniture</option></select></div></div><div class="form-row"><div class="form-group"><label>Material</label><input type="text" name="material" id="editMaterial" class="form-control"></div><div class="form-group"><label>Dimensions</label><input type="text" name="dimensions" id="editDimensions" class="form-control"></div></div><div class="form-row"><div class="form-group"><label>Finish</label><input type="text" name="finish" id="editFinish" class="form-control"></div><div class="form-group"><label>Badge</label><input type="text" name="badge" id="editBadge" class="form-control"></div></div><div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" name="emoji" id="editEmoji" class="form-control" maxlength="2"></div><div class="form-group"><label>Rating</label><input type="number" name="rating" id="editRating" class="form-control" step="0.1" min="0" max="5"></div></div><div class="form-group"><label>Active</label><select name="active" id="editActive" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div><div class="form-group"><label>Description</label><textarea name="description" id="editDescription" class="form-control" rows="3"></textarea></div><div class="form-group"><label>Features (comma separated)</label><input type="text" name="features" id="editFeatures" class="form-control"></div><button type="submit" class="btn btn-primary">Update Product</button></form></div></div></div>
-<script>function editProduct(id, name, category, material, dimensions, finish, badge, description, features, emoji, rating, active) { document.getElementById('editForm').action = '/admin/product/edit/' + id; document.getElementById('editName').value = name; document.getElementById('editCategory').value = category; document.getElementById('editMaterial').value = material; document.getElementById('editDimensions').value = dimensions; document.getElementById('editFinish').value = finish; document.getElementById('editBadge').value = badge; document.getElementById('editDescription').value = description; document.getElementById('editFeatures').value = features; document.getElementById('editEmoji').value = emoji; document.getElementById('editRating').value = rating; document.getElementById('editActive').value = active; document.getElementById('editModal').classList.add('active'); }</script>
+
+<div class="modal" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header"><h4>Add New Product</h4><button class="modal-close" onclick="document.getElementById('addModal').classList.remove('active')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" action="/admin/product/add">
+                <div class="form-row"><div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required></div><div class="form-group"><label>Category</label><select name="category" class="form-control" required><option value="doors">Doors</option><option value="hardware">Hardware</option><option value="kitchen">Kitchen</option><option value="wardrobe">Wardrobe</option><option value="furniture">Furniture</option></select></div></div>
+                <div class="form-row"><div class="form-group"><label>Material</label><input type="text" name="material" class="form-control"></div><div class="form-group"><label>Dimensions</label><input type="text" name="dimensions" class="form-control" placeholder="e.g. 84 x 36 x 2"></div></div>
+                <div class="form-row"><div class="form-group"><label>Finish</label><input type="text" name="finish" class="form-control"></div><div class="form-group"><label>Badge</label><input type="text" name="badge" class="form-control" placeholder="e.g. Sale, New, Premium"></div></div>
+                <div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" name="emoji" class="form-control" value="📦" maxlength="2"></div><div class="form-group"><label>Rating</label><input type="number" name="rating" class="form-control" value="4.5" step="0.1" min="0" max="5"></div></div>
+                <div class="form-group"><label>Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+                <div class="form-group"><label>Features (comma separated)</label><input type="text" name="features" class="form-control" placeholder="e.g. Hand-carved, Weather-resistant"></div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header"><h4>Edit Product</h4><button class="modal-close" onclick="document.getElementById('editModal').classList.remove('active')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" id="editForm" action="">
+                <div class="form-row"><div class="form-group"><label>Name</label><input type="text" name="name" id="editName" class="form-control" required></div><div class="form-group"><label>Category</label><select name="category" id="editCategory" class="form-control" required><option value="doors">Doors</option><option value="hardware">Hardware</option><option value="kitchen">Kitchen</option><option value="wardrobe">Wardrobe</option><option value="furniture">Furniture</option></select></div></div>
+                <div class="form-row"><div class="form-group"><label>Material</label><input type="text" name="material" id="editMaterial" class="form-control"></div><div class="form-group"><label>Dimensions</label><input type="text" name="dimensions" id="editDimensions" class="form-control"></div></div>
+                <div class="form-row"><div class="form-group"><label>Finish</label><input type="text" name="finish" id="editFinish" class="form-control"></div><div class="form-group"><label>Badge</label><input type="text" name="badge" id="editBadge" class="form-control"></div></div>
+                <div class="form-row"><div class="form-group"><label>Emoji</label><input type="text" name="emoji" id="editEmoji" class="form-control" maxlength="2"></div><div class="form-group"><label>Rating</label><input type="number" name="rating" id="editRating" class="form-control" step="0.1" min="0" max="5"></div></div>
+                <div class="form-group"><label>Active</label><select name="active" id="editActive" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <div class="form-group"><label>Description</label><textarea name="description" id="editDescription" class="form-control" rows="3"></textarea></div>
+                <div class="form-group"><label>Features (comma separated)</label><input type="text" name="features" id="editFeatures" class="form-control"></div>
+                <button type="submit" class="btn btn-primary">Update Product</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editProduct(id, name, category, material, dimensions, finish, badge, description, features, emoji, rating, active) {
+    document.getElementById('editForm').action = '/admin/product/edit/' + id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editMaterial').value = material;
+    document.getElementById('editDimensions').value = dimensions;
+    document.getElementById('editFinish').value = finish;
+    document.getElementById('editBadge').value = badge;
+    document.getElementById('editDescription').value = description;
+    document.getElementById('editFeatures').value = features;
+    document.getElementById('editEmoji').value = emoji;
+    document.getElementById('editRating').value = rating;
+    document.getElementById('editActive').value = active;
+    document.getElementById('editModal').classList.add('active');
+}
+</script>
 {% endblock %}
