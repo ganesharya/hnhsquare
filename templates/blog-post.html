@@ -44,7 +44,13 @@
                 <li><a href="/blog" class="active">Blog</a></li>
                 <li><a href="/about">About</a></li>
                 <li><a href="/contact">Contact</a></li>
+                {% if session.get('user_id') %}
+                <li><a href="/dashboard">{{ session.get('user_name', 'Account') }}</a></li>
+                <li><a href="/logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
                 <li><a href="/signup" class="btn btn-primary" style="padding:8px 20px;font-size:0.85rem;margin-left:8px;">Sign Up</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>

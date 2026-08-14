@@ -36,7 +36,7 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/catalogue">Catalogue</a></li>
                 <li><a href="/products">Products</a></li>
-                <li><a href="/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/dashboard" class="active">{{ session.get('user_name', 'Dashboard') }}</a></li>
                 <li><a href="/vr-walkthrough">VR</a></li>
                 <li><a href="/design-studio">AI Studio</a></li>
                 <li><a href="/logout">Logout</a></li>

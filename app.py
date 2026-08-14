@@ -564,7 +564,28 @@ def register():
     finally:
         conn.close()
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    data = request.get_json() or request.form
+    password = hash_password(data.get('password', ''))
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE email = ? AND password = ?", (data.get('email'), password)).fetchone()
+    conn.close()
+    if user:
+        session['user_id'] = user['id']
+        session['user_name'] = user['name']
+        session['user_email'] = user['email']
+        session['user_role'] = user['role']
+        if request.is_json:
+            return jsonify({'success': True, 'role': user['role'], 'name': user['name']})
+        return redirect(url_for('home'))
+    if request.is_json:
+        return jsonify({'error': 'Invalid credentials'}), 401
+    flash('Invalid email or password', 'danger')
+    return redirect(url_for('login'))
 def login():
     data = request.get_json() or request.form
     password = hash_password(data.get('password', ''))
