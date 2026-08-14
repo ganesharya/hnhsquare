@@ -1141,7 +1141,33 @@ def mark_design(design_id):
     conn.close()
     return redirect(url_for('admin_designs'))
 
+@app.route('/admin/design/mark/<int:design_id>')
+@admin_required
+def mark_design(design_id):
+    conn = get_db()
+    conn.execute("UPDATE design_requests SET status = 'read' WHERE id = ?", (design_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_designs'))
+
+@app.route('/admin/design/edit/<int:design_id>', methods=['POST'])
+@admin_required
+def edit_design(design_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE design_requests SET name=?, email=?, phone=?, room_type=?, room_size=?, style=?, budget=?, notes=?, status=?, updated_at=CURRENT_TIMESTAMP
+        WHERE id=?
+    """, (data.get('name'), data.get('email'), data.get('phone'), data.get('room_type'),
+          data.get('room_size'), data.get('style'), data.get('budget'), data.get('notes'),
+          data.get('status'), design_id))
+    conn.commit()
+    conn.close()
+    flash('Design request updated!', 'success')
+    return redirect(url_for('admin_designs'))
+
 # VR Houses Admin
+@app.route('/admin/vr-houses')
 @app.route('/admin/vr-houses')
 @admin_required
 def admin_vr_houses():

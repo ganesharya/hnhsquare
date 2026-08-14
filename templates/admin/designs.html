@@ -2,5 +2,111 @@
 {% block title %}Design Requests{% endblock %}
 {% block page_title %}AI Design Requests{% endblock %}
 {% block content %}
-<div class="card"><div class="card-header"><h4>All Design Requests</h4></div><div class="card-body" style="padding: 0;"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Room</th><th>Size</th><th>Style</th><th>Budget</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>{% for d in designs %}<tr><td>{{ d.name }}</td><td>{{ d.email }}</td><td>{{ d.phone or 'N/A' }}</td><td>{{ d.room_type }}</td><td>{{ d.room_size or 'N/A' }}</td><td>{{ d.style or 'N/A' }}</td><td>{{ d.budget or 'N/A' }}</td><td><span class="status-badge status-{{ d.status }}">{{ d.status|title }}</span></td><td>{{ d.created_at[:10] }}</td><td>{% if d.status == 'new' %}<a href="/admin/design/mark/{{ d.id }}" class="btn btn-sm btn-success">Mark Read</a>{% endif %}</td></tr>{% else %}<tr><td colspan="10" style="text-align: center; color: var(--text-light); padding: 40px;">No design requests</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Design Requests</h2>
+    <span class="text-muted">Total: {{ designs|length }}</span>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Room</th>
+                    <th>Size</th>
+                    <th>Style</th>
+                    <th>Budget</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in designs %}
+                <tr>
+                    <td>{{ d.name }}</td>
+                    <td>{{ d.email }}</td>
+                    <td>{{ d.phone or 'N/A' }}</td>
+                    <td>{{ d.room_type }}</td>
+                    <td>{{ d.room_size or 'N/A' }}</td>
+                    <td>{{ d.style or 'N/A' }}</td>
+                    <td>{{ d.budget or 'N/A' }}</td>
+                    <td><span class="status-badge status-{{ d.status }}">{{ d.status|title }}</span></td>
+                    <td>{{ d.created_at[:10] }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ d.id }}, '{{ d.name|replace("'", "\\'") }}', '{{ d.email|replace("'", "\\'") }}', '{{ d.phone|replace("'", "\\'") }}', '{{ d.room_type|replace("'", "\\'") }}', '{{ d.room_size|replace("'", "\\'") }}', '{{ d.style|replace("'", "\\'") }}', '{{ d.budget|replace("'", "\\'") }}', '{{ d.notes|replace("'", "\\'") }}', '{{ d.status }}')">Edit</button>
+                        {% if d.status == 'new' %}
+                        <a href="/admin/design/mark/{{ d.id }}" class="btn btn-sm btn-success">Mark Read</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="10" style="text-align: center; color: var(--text-light); padding: 40px;">No design requests</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Design Modal -->
+<div class="modal" id="editDesignModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Design Request</h3>
+            <button class="modal-close" onclick="closeModal('editDesignModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form action="" method="POST" id="editDesignForm">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" id="edit_name" class="form-control" required></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" id="edit_email" class="form-control" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" id="edit_phone" class="form-control"></div>
+                    <div class="form-group"><label>Room Type</label><input type="text" name="room_type" id="edit_room_type" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Room Size</label><input type="text" name="room_size" id="edit_room_size" class="form-control"></div>
+                    <div class="form-group"><label>Style</label><input type="text" name="style" id="edit_style" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Budget</label><input type="text" name="budget" id="edit_budget" class="form-control"></div>
+                    <div class="form-group"><label>Status</label>
+                        <select name="status" id="edit_status" class="form-control">
+                            <option value="new">New</option>
+                            <option value="read">Read</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea name="notes" id="edit_notes" class="form-control" rows="3"></textarea></div>
+                <button type="submit" class="btn btn-primary">Update Design Request</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openEditModal(id, name, email, phone, room_type, room_size, style, budget, notes, status) {
+    document.getElementById('editDesignForm').action = '/admin/design/edit/' + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_phone').value = phone;
+    document.getElementById('edit_room_type').value = room_type;
+    document.getElementById('edit_room_size').value = room_size;
+    document.getElementById('edit_style').value = style;
+    document.getElementById('edit_budget').value = budget;
+    document.getElementById('edit_notes').value = notes;
+    document.getElementById('edit_status').value = status;
+    openModal('editDesignModal');
+}
+</script>
 {% endblock %}
