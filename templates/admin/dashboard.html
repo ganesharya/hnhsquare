@@ -45,6 +45,30 @@
             <span class="stat-label">walkthroughs</span>
         </div>
     </div>
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">&#128203;</div>
+        <div class="stat-info">
+            <h5>Total Orders</h5>
+            <div class="value">{{ stats.total_orders }}</div>
+            <span class="stat-label">{{ stats.pending_orders }} pending</span>
+        </div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-icon">&#128176;</div>
+        <div class="stat-info">
+            <h5>Revenue</h5>
+            <div class="value">&#8377;{{ "%.0f"|format(stats.total_revenue) }}</div>
+            <span class="stat-label">completed orders</span>
+        </div>
+    </div>
+    <div class="stat-card stat-accent">
+        <div class="stat-icon">&#128104;&#8205;&#128188;</div>
+        <div class="stat-info">
+            <h5>Employees</h5>
+            <div class="value">{{ stats.total_employees }}</div>
+            <span class="stat-label">active staff</span>
+        </div>
+    </div>
 </div>
 
 <!-- Main Dashboard Grid -->
@@ -64,6 +88,7 @@
                         <div class="chart-bars">
                             <div class="chart-bar chart-bar-contacts" style="height: {{ day.contact_pct }}%" title="{{ day.contacts }} contacts"></div>
                             <div class="chart-bar chart-bar-designs" style="height: {{ day.design_pct }}%" title="{{ day.designs }} designs"></div>
+                            <div class="chart-bar chart-bar-orders" style="height: {{ day.order_pct }}%" title="{{ day.orders }} orders"></div>
                         </div>
                         <span class="chart-label">{{ day.label }}</span>
                     </div>
@@ -71,7 +96,33 @@
                 </div>
                 <div class="chart-legend">
                     <span><span class="legend-dot" style="background: var(--accent)"></span>Contacts</span>
-                    <span><span class="legend-dot" style="background: var(--gold)"></span>Design Requests</span>
+                    <span><span class="legend-dot" style="background: var(--gold)"></span>Designs</span>
+                    <span><span class="legend-dot" style="background: var(--success)"></span>Orders</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Trends -->
+        <div class="card">
+            <div class="card-header">
+                <h4>Monthly Trends</h4>
+                <span class="text-muted">Last 6 months</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    {% for month in monthly_stats %}
+                    <div class="chart-bar-group">
+                        <div class="chart-bars">
+                            <div class="chart-bar chart-bar-contacts" style="height: {{ month.orders * 10 }}px" title="{{ month.orders }} orders"></div>
+                            <div class="chart-bar chart-bar-designs" style="height: {{ month.users * 10 }}px" title="{{ month.users }} new users"></div>
+                        </div>
+                        <span class="chart-label">{{ month.label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="chart-legend">
+                    <span><span class="legend-dot" style="background: var(--accent)"></span>Orders</span>
+                    <span><span class="legend-dot" style="background: var(--gold)"></span>New Users</span>
                 </div>
             </div>
         </div>
@@ -110,6 +161,10 @@
             <div class="card-header"><h4>Quick Actions</h4></div>
             <div class="card-body">
                 <div class="quick-actions">
+                    <a href="/admin/orders" class="qa-btn qa-primary">
+                        <span class="qa-icon">&#128203;</span>
+                        <span class="qa-text">Manage Orders</span>
+                    </a>
                     <a href="/admin/products" class="qa-btn qa-primary">
                         <span class="qa-icon">&#10133;</span>
                         <span class="qa-text">Add Product</span>
@@ -117,6 +172,10 @@
                     <a href="/admin/content" class="qa-btn qa-success">
                         <span class="qa-icon">&#9998;</span>
                         <span class="qa-text">Edit Content</span>
+                    </a>
+                    <a href="/admin/employees" class="qa-btn qa-info">
+                        <span class="qa-icon">&#128104;&#8205;&#128188;</span>
+                        <span class="qa-text">Add Employee</span>
                     </a>
                     <a href="/admin/vr-houses" class="qa-btn qa-info">
                         <span class="qa-icon">&#127968;</span>
@@ -140,7 +199,7 @@
 
         <!-- Status Overview -->
         <div class="card">
-            <div class="card-header"><h4>Inquiry Status</h4></div>
+            <div class="card-header"><h4>Inquiry & Order Status</h4></div>
             <div class="card-body">
                 <div class="status-grid">
                     <div class="status-item">
@@ -171,6 +230,15 @@
                             <div class="status-label">Read Designs</div>
                         </div>
                     </div>
+                    {% for os in order_status_stats %}
+                    <div class="status-item">
+                        <span class="status-dot" style="background: {% if os.status == 'completed' %}var(--success){% elif os.status == 'pending' %}var(--warning){% else %}var(--text-light){% endif %}"></span>
+                        <div>
+                            <div class="status-num">{{ os.count }}</div>
+                            <div class="status-label">{{ os.status|title }} Orders</div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

@@ -24,6 +24,31 @@
     </div>
 </div>
 
+<!-- Image Upload Section -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h4>&#128247; Upload Image</h4><span style="font-size: 0.85rem; color: var(--text-light);">Upload images to use in content blocks</span></div>
+    <div class="card-body">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Select Image</label>
+                    <input type="file" name="image" id="imageFile" class="form-control" accept="image/*" required>
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button type="button" class="btn btn-primary" onclick="uploadImage()">Upload Image</button>
+                </div>
+            </div>
+        </form>
+        <div id="uploadResult" style="margin-top: 12px; display: none;">
+            <div style="background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem;">
+                <strong>Image uploaded!</strong> URL: <code id="uploadUrl" style="background: white; padding: 2px 6px; border-radius: 4px;"></code>
+                <button class="btn btn-sm btn-success" style="margin-left: 8px;" onclick="copyUrl()">Copy</button>
+            </div>
+            <img id="uploadPreview" style="margin-top: 12px; max-width: 200px; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+    </div>
+</div>
+
 <div class="card" style="margin-bottom: 24px;">
     <div class="card-header"><h4>+ Add New Content Block</h4></div>
     <div class="card-body">
@@ -58,6 +83,31 @@ function editContent(key, title, content) {
     document.getElementById('editTitle').value = title;
     document.getElementById('editContent').value = content.replace(/\\n/g, '\n');
     document.getElementById('editModal').classList.add('active');
+}
+
+function uploadImage() {
+    var form = document.getElementById('uploadForm');
+    var fileInput = document.getElementById('imageFile');
+    if (!fileInput.files.length) { alert('Please select an image'); return; }
+    var data = new FormData();
+    data.append('image', fileInput.files[0]);
+    fetch('/admin/content/upload-image', { method: 'POST', body: data })
+        .then(r => r.json())
+        .then(result => {
+            if (result.url) {
+                document.getElementById('uploadUrl').textContent = result.url;
+                document.getElementById('uploadPreview').src = result.url;
+                document.getElementById('uploadResult').style.display = 'block';
+            } else {
+                alert('Upload failed: ' + (result.error || 'Unknown error'));
+            }
+        })
+        .catch(e => alert('Upload failed: ' + e));
+}
+
+function copyUrl() {
+    var url = document.getElementById('uploadUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => alert('URL copied!'));
 }
 </script>
 {% endblock %}

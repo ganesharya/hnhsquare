@@ -82,6 +82,8 @@
         .chart-bar { width: 14px; border-radius: 4px 4px 0 0; transition: height 0.5s ease; min-height: 4px; }
         .chart-bar-contacts { background: var(--accent); }
         .chart-bar-designs { background: var(--gold); }
+        .chart-bar-orders { background: var(--success); }
+        .chart-bar-designs { background: var(--gold); }
         .chart-label { font-size: 0.7rem; color: var(--text-light); }
         .chart-legend { display: flex; gap: 20px; justify-content: center; margin-top: 8px; font-size: 0.8rem; color: var(--text-light); }
         .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
@@ -150,15 +152,17 @@
         <aside class="sidebar">
             <div class="sidebar-brand"><h2>HNHSquare</h2><span>Admin Panel</span></div>
             <nav class="sidebar-nav">
-                <a href="/admin/dashboard" class="{% if request.path == '/admin/dashboard' %}active{% endif %}">Dashboard</a>
-                <a href="/admin/products" class="{% if request.path == '/admin/products' %}active{% endif %}">Products</a>
-                <a href="/admin/content" class="{% if request.path == '/admin/content' %}active{% endif %}">Site Content</a>
-                <a href="/admin/users" class="{% if request.path == '/admin/users' %}active{% endif %}">Users</a>
-                <a href="/admin/contacts" class="{% if request.path == '/admin/contacts' %}active{% endif %}">Contacts</a>
-                <a href="/admin/design-requests" class="{% if request.path == '/admin/design-requests' %}active{% endif %}">Design Requests</a>
-                <a href="/admin/enscape-projects" class="{% if request.path == '/admin/enscape-projects' %}active{% endif %}">Enscape Projects</a>
-                <a href="/admin/vr-houses" class="{% if request.path == '/admin/vr-houses' %}active{% endif %}">VR Houses</a>
-                <a href="/logout">Logout</a>
+                <a href="/admin/dashboard" class="{% if request.path == '/admin/dashboard' %}active{% endif %}">&#128202; Dashboard</a>
+                <a href="/admin/orders" class="{% if request.path.startswith('/admin/order') %}active{% endif %}">&#128203; Orders</a>
+                <a href="/admin/products" class="{% if request.path == '/admin/products' %}active{% endif %}">&#128722; Products</a>
+                <a href="/admin/users" class="{% if request.path == '/admin/users' %}active{% endif %}">&#128100; Users</a>
+                <a href="/admin/employees" class="{% if request.path.startswith('/admin/employee') %}active{% endif %}">&#128104;&#8205;&#128188; Employees</a>
+                <a href="/admin/contacts" class="{% if request.path == '/admin/contacts' %}active{% endif %}">&#9993; Contacts</a>
+                <a href="/admin/design-requests" class="{% if request.path == '/admin/design-requests' %}active{% endif %}">&#127912; Design Requests</a>
+                <a href="/admin/content" class="{% if request.path == '/admin/content' %}active{% endif %}">&#9998; Site Content</a>
+                <a href="/admin/vr-houses" class="{% if request.path == '/admin/vr-houses' %}active{% endif %}">&#127968; VR Houses</a>
+                <a href="/admin/enscape-projects" class="{% if request.path == '/admin/enscape-projects' %}active{% endif %}">&#127918; Enscape</a>
+                <a href="/logout">&#128682; Logout</a>
             </nav>
         </aside>
         <div class="main-content">

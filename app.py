@@ -122,6 +122,51 @@ def init_db():
         )
     """)
 
+    # Orders / Quotations
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_name TEXT NOT NULL,
+            customer_email TEXT,
+            customer_phone TEXT,
+            subject TEXT,
+            description TEXT,
+            amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            priority TEXT DEFAULT 'medium',
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Employees
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE,
+            phone TEXT,
+            department TEXT DEFAULT 'General',
+            designation TEXT DEFAULT 'Staff',
+            salary REAL DEFAULT 0,
+            joining_date TEXT,
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Insert default admin
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS site_content (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT UNIQUE NOT NULL,
+            title TEXT,
+            content TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     # Insert default admin
     admin_pass = hashlib.sha256('admin123'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (1, 'Admin', 'admin@hnhsquare.com', ?, 'admin')", (admin_pass,))
@@ -706,6 +751,158 @@ def admin_dashboard():
         'read_contacts': conn.execute("SELECT COUNT(*) as c FROM contacts WHERE status = 'read'").fetchone()['c'],
         'new_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'new'").fetchone()['c'],
         'read_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'read'").fetchone()['c'],
+        'total_houses': conn.execute("SELECT COUNT(*) as c FROM vr_houses WHERE active = 1").fetchone()['c'],
+        'total_orders': conn.execute("SELECT COUNT(*) as c FROM orders").fetchone()['c'],
+        'pending_orders': conn.execute("SELECT COUNT(*) as c FROM orders WHERE status = 'pending'").fetchone()['c'],
+        'total_revenue': conn.execute("SELECT COALESCE(SUM(amount), 0) as c FROM orders WHERE status = 'completed'").fetchone()['c'],
+        'total_employees': conn.execute("SELECT COUNT(*) as c FROM employees WHERE status = 'active'").fetchone()['c'],
+        'admin_users': conn.execute("SELECT COUNT(*) as c FROM users WHERE role = 'admin'").fetchone()['c']
+    }
+
+    # Weekly stats (last 7 days)
+    from datetime import datetime, timedelta
+    weekly_stats = []
+    max_val = 1
+    for i in range(6, -1, -1):
+        day = datetime.now() - timedelta(days=i)
+        day_start = day.strftime('%Y-%m-%d 00:00:00')
+        day_end = day.strftime('%Y-%m-%d 23:59:59')
+        contacts = conn.execute(
+            "SELECT COUNT(*) as c FROM contacts WHERE created_at BETWEEN ? AND ?",
+            (day_start, day_end)
+        ).fetchone()['c']
+        designs = conn.execute(
+            "SELECT COUNT(*) as c FROM design_requests WHERE created_at BETWEEN ? AND ?",
+            (day_start, day_end)
+        ).fetchone()['c']
+        orders = conn.execute(
+            "SELECT COUNT(*) as c FROM orders WHERE created_at BETWEEN ? AND ?",
+            (day_start, day_end)
+        ).fetchone()['c']
+        weekly_stats.append({
+            'label': day.strftime('%a'),
+            'contacts': contacts,
+            'designs': designs,
+            'orders': orders
+        })
+        max_val = max(max_val, contacts, designs, orders)
+    for s in weekly_stats:
+        s['contact_pct'] = min(100, int(s['contacts'] / max_val * 100)) if max_val else 0
+        s['design_pct'] = min(100, int(s['designs'] / max_val * 100)) if max_val else 0
+        s['order_pct'] = min(100, int(s['orders'] / max_val * 100)) if max_val else 0
+
+    # Monthly stats (last 6 months) for chart
+    monthly_stats = []
+    for i in range(5, -1, -1):
+        month_start = (datetime.now().replace(day=1) - timedelta(days=i*30)).replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        ms = month_start.strftime('%Y-%m-%d 00:00:00')
+        me = month_end.strftime('%Y-%m-%d 23:59:59')
+        order_count = conn.execute("SELECT COUNT(*) as c FROM orders WHERE created_at BETWEEN ? AND ?", (ms, me)).fetchone()['c']
+        revenue = conn.execute("SELECT COALESCE(SUM(amount), 0) as c FROM orders WHERE status = 'completed' AND created_at BETWEEN ? AND ?", (ms, me)).fetchone()['c']
+        new_users = conn.execute("SELECT COUNT(*) as c FROM users WHERE created_at BETWEEN ? AND ?", (ms, me)).fetchone()['c']
+        monthly_stats.append({
+            'label': month_start.strftime('%b'),
+            'orders': order_count,
+            'revenue': revenue,
+            'users': new_users
+        })
+
+    # Category breakdown with emoji mapping
+    cat_emojis = {'doors': '🚪', 'hardware': '🔧', 'kitchen': '🍳', 'wardrobe': '👔', 'furniture': '🪑'}
+    cats = conn.execute("SELECT category, COUNT(*) as cnt FROM products WHERE active = 1 GROUP BY category").fetchall()
+    total_cat = sum(c['cnt'] for c in cats) or 1
+    category_stats = []
+    for c in cats:
+        category_stats.append({
+            'category': c['category'],
+            'count': c['cnt'],
+            'emoji': cat_emojis.get(c['category'], '📦'),
+            'pct': int(c['cnt'] / total_cat * 100)
+        })
+    category_stats.sort(key=lambda x: -x['count'])
+
+    # Order status breakdown
+    order_status = conn.execute("SELECT status, COUNT(*) as cnt FROM orders GROUP BY status").fetchall()
+    order_status_stats = []
+    for os in order_status:
+        order_status_stats.append({'status': os['status'], 'count': os['cnt']})
+
+    # Recent activity feed (combined contacts + designs + orders)
+    recent_contacts = conn.execute("SELECT * FROM contacts ORDER BY created_at DESC LIMIT 5").fetchall()
+    recent_designs = conn.execute("SELECT * FROM design_requests ORDER BY created_at DESC LIMIT 5").fetchall()
+    recent_orders = conn.execute("SELECT * FROM orders ORDER BY created_at DESC LIMIT 5").fetchall()
+
+    activity_items = []
+    for c in recent_contacts:
+        dt = datetime.strptime(c['created_at'], '%Y-%m-%d %H:%M:%S')
+        diff = datetime.now() - dt
+        if diff.days > 0:
+            time_ago = f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            time_ago = f"{diff.seconds // 3600}h ago"
+        else:
+            time_ago = f"{diff.seconds // 60}m ago"
+        activity_items.append({
+            'type': 'contact',
+            'icon': '✉️',
+            'title': c['name'],
+            'subtitle': c['subject'] or 'General Inquiry',
+            'status': c['status'],
+            'time_ago': time_ago,
+            'ts': c['created_at']
+        })
+    for d in recent_designs:
+        dt = datetime.strptime(d['created_at'], '%Y-%m-%d %H:%M:%S')
+        diff = datetime.now() - dt
+        if diff.days > 0:
+            time_ago = f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            time_ago = f"{diff.seconds // 3600}h ago"
+        else:
+            time_ago = f"{diff.seconds // 60}m ago"
+        activity_items.append({
+            'type': 'design',
+            'icon': '🎨',
+            'title': d['name'],
+            'subtitle': f"{d['room_type']} - {d['style']}",
+            'status': d['status'],
+            'time_ago': time_ago,
+            'ts': d['created_at']
+        })
+    for o in recent_orders:
+        dt = datetime.strptime(o['created_at'], '%Y-%m-%d %H:%M:%S')
+        diff = datetime.now() - dt
+        if diff.days > 0:
+            time_ago = f"{diff.days}d ago"
+        elif diff.seconds // 3600 > 0:
+            time_ago = f"{diff.seconds // 3600}h ago"
+        else:
+            time_ago = f"{diff.seconds // 60}m ago"
+        activity_items.append({
+            'type': 'order',
+            'icon': '📋',
+            'title': o['customer_name'],
+            'subtitle': o['subject'] or 'Order',
+            'status': o['status'],
+            'time_ago': time_ago,
+            'ts': o['created_at']
+        })
+    activity_items.sort(key=lambda x: x['ts'], reverse=True)
+    recent_activity = activity_items[:10]
+
+    conn.close()
+    return render_template('admin/dashboard.html', stats=stats, weekly_stats=weekly_stats,
+                           monthly_stats=monthly_stats, category_stats=category_stats,
+                           order_status_stats=order_status_stats, recent_activity=recent_activity)
+    conn = get_db()
+    stats = {
+        'total_products': conn.execute("SELECT COUNT(*) as c FROM products WHERE active = 1").fetchone()['c'],
+        'total_users': conn.execute("SELECT COUNT(*) as c FROM users WHERE role = 'customer'").fetchone()['c'],
+        'new_contacts': conn.execute("SELECT COUNT(*) as c FROM contacts WHERE status = 'new'").fetchone()['c'],
+        'read_contacts': conn.execute("SELECT COUNT(*) as c FROM contacts WHERE status = 'read'").fetchone()['c'],
+        'new_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'new'").fetchone()['c'],
+        'read_designs': conn.execute("SELECT COUNT(*) as c FROM design_requests WHERE status = 'read'").fetchone()['c'],
         'total_houses': conn.execute("SELECT COUNT(*) as c FROM vr_houses WHERE active = 1").fetchone()['c']
     }
 
@@ -851,6 +1048,24 @@ def delete_product(product_id):
 @admin_required
 def admin_users():
     conn = get_db()
+    users = conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/users.html', users=users)
+
+@app.route('/admin/user/edit-role/<int:user_id>', methods=['POST'])
+@admin_required
+def edit_user_role(user_id):
+    data = request.form
+    new_role = data.get('role')
+    conn = get_db()
+    conn.execute("UPDATE users SET role = ? WHERE id = ?", (new_role, user_id))
+    conn.commit()
+    conn.close()
+    flash('User role updated!', 'success')
+    return redirect(url_for('admin_users'))
+@admin_required
+def admin_users():
+    conn = get_db()
     users = conn.execute("SELECT * FROM users WHERE role = 'customer' ORDER BY created_at DESC").fetchall()
     conn.close()
     return render_template('admin/users.html', users=users)
@@ -937,6 +1152,106 @@ def admin_enscape():
                 projects.append({'name': name, 'url': f'/enscape-viewer?project={name}'})
     return render_template('admin/enscape.html', projects=projects)
 
+# ===================== ORDERS MANAGEMENT =====================
+@app.route('/admin/orders')
+@admin_required
+def admin_orders():
+    conn = get_db()
+    orders = conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/orders.html', orders=orders)
+
+@app.route('/admin/order/add', methods=['POST'])
+@admin_required
+def add_order():
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO orders (customer_name, customer_email, customer_phone, subject, description, amount, status, priority, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data.get('customer_name'), data.get('customer_email'), data.get('customer_phone'),
+          data.get('subject'), data.get('description'), data.get('amount', 0),
+          data.get('status', 'pending'), data.get('priority', 'medium'), data.get('notes')))
+    conn.commit()
+    conn.close()
+    flash('Order added successfully!', 'success')
+    return redirect(url_for('admin_orders'))
+
+@app.route('/admin/order/edit/<int:order_id>', methods=['POST'])
+@admin_required
+def edit_order(order_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE orders SET customer_name=?, customer_email=?, customer_phone=?, subject=?, description=?, amount=?, status=?, priority=?, notes=?, updated_at=CURRENT_TIMESTAMP
+        WHERE id=?
+    """, (data.get('customer_name'), data.get('customer_email'), data.get('customer_phone'),
+          data.get('subject'), data.get('description'), data.get('amount'),
+          data.get('status'), data.get('priority'), data.get('notes'), order_id))
+    conn.commit()
+    conn.close()
+    flash('Order updated!', 'success')
+    return redirect(url_for('admin_orders'))
+
+@app.route('/admin/order/delete/<int:order_id>')
+@admin_required
+def delete_order(order_id):
+    conn = get_db()
+    conn.execute("DELETE FROM orders WHERE id = ?", (order_id,))
+    conn.commit()
+    conn.close()
+    flash('Order deleted!', 'success')
+    return redirect(url_for('admin_orders'))
+
+# ===================== EMPLOYEES MANAGEMENT =====================
+@app.route('/admin/employees')
+@admin_required
+def admin_employees():
+    conn = get_db()
+    employees = conn.execute("SELECT * FROM employees ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/employees.html', employees=employees)
+
+@app.route('/admin/employee/add', methods=['POST'])
+@admin_required
+def add_employee():
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO employees (name, email, phone, department, designation, salary, joining_date, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data.get('name'), data.get('email'), data.get('phone'), data.get('department'),
+          data.get('designation'), data.get('salary'), data.get('joining_date'), data.get('status', 'active')))
+    conn.commit()
+    conn.close()
+    flash('Employee added successfully!', 'success')
+    return redirect(url_for('admin_employees'))
+
+@app.route('/admin/employee/edit/<int:employee_id>', methods=['POST'])
+@admin_required
+def edit_employee(employee_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE employees SET name=?, email=?, phone=?, department=?, designation=?, salary=?, joining_date=?, status=?
+        WHERE id=?
+    """, (data.get('name'), data.get('email'), data.get('phone'), data.get('department'),
+          data.get('designation'), data.get('salary'), data.get('joining_date'), data.get('status'), employee_id))
+    conn.commit()
+    conn.close()
+    flash('Employee updated!', 'success')
+    return redirect(url_for('admin_employees'))
+
+@app.route('/admin/employee/delete/<int:employee_id>')
+@admin_required
+def delete_employee(employee_id):
+    conn = get_db()
+    conn.execute("DELETE FROM employees WHERE id = ?", (employee_id,))
+    conn.commit()
+    conn.close()
+    flash('Employee deleted!', 'success')
+    return redirect(url_for('admin_employees'))
+
 # ===================== CONTENT MANAGEMENT =====================
 @app.route('/admin/content')
 @admin_required
@@ -960,8 +1275,24 @@ def update_content():
     conn.close()
     flash('Content updated!', 'success')
     return redirect(url_for('admin_content'))
-
 @app.route('/api/content/<key>')
+def api_content(key):
+    return jsonify({'key': key, 'content': get_content(key)})
+
+@app.route('/admin/content/upload-image', methods=['POST'])
+@admin_required
+def upload_content_image():
+    file = request.files.get('image')
+    if not file:
+        return jsonify({'error': 'No image provided'}), 400
+    filename = f"content_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+    upload_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+    return jsonify({'url': f'/static/uploads/{filename}', 'filename': filename})
+
+# ===================== MAIN =====================
 def api_content(key):
     return jsonify({'key': key, 'content': get_content(key)})
 

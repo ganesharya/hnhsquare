@@ -1,0 +1,142 @@
+{% extends "admin/base.html" %}
+{% block title %}Employees{% endblock %}
+{% block page_title %}Employee Management{% endblock %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Employees</h2>
+    <button class="btn btn-primary" onclick="openModal('addEmployeeModal')">+ Add Employee</button>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Salary</th>
+                    <th>Joining Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr>
+                    <td>#{{ emp.id }}</td>
+                    <td>
+                        <strong>{{ emp.name }}</strong><br>
+                        <small style="color: var(--text-light);">{{ emp.email }}</small>
+                    </td>
+                    <td>{{ emp.department or '-' }}</td>
+                    <td>{{ emp.designation or '-' }}</td>
+                    <td>&#8377;{{ emp.salary or 0 }}</td>
+                    <td>{{ emp.joining_date or '-' }}</td>
+                    <td><span class="status-badge status-{{ emp.status or 'active' }}">{{ (emp.status or 'active')|title }}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ emp.id }}, '{{ emp.name|replace("'", "\\'") }}', '{{ emp.email|replace("'", "\\'") }}', '{{ emp.phone|replace("'", "\\'") }}', '{{ emp.department|replace("'", "\\'") }}', '{{ emp.designation|replace("'", "\\'") }}', {{ emp.salary or 0 }}, '{{ emp.joining_date or '' }}', '{{ emp.status }}')">Edit</button>
+                        <a href="/admin/employee/delete/{{ emp.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this employee?')">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No employees yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal" id="addEmployeeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Employee</h3>
+            <button class="modal-close" onclick="closeModal('addEmployeeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form action="/admin/employee/add" method="POST">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-control"></div>
+                    <div class="form-group"><label>Department</label><input type="text" name="department" class="form-control" placeholder="e.g. Sales, Design, Production"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Designation</label><input type="text" name="designation" class="form-control" placeholder="e.g. Manager, Designer"></div>
+                    <div class="form-group"><label>Salary (&#8377;)</label><input type="number" name="salary" class="form-control" step="0.01" value="0"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Joining Date</label><input type="date" name="joining_date" class="form-control"></div>
+                    <div class="form-group"><label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="on_leave">On Leave</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Employee</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div class="modal" id="editEmployeeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Employee</h3>
+            <button class="modal-close" onclick="closeModal('editEmployeeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form action="" method="POST" id="editEmployeeForm">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" id="edit_name" class="form-control" required></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" id="edit_email" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" id="edit_phone" class="form-control"></div>
+                    <div class="form-group"><label>Department</label><input type="text" name="department" id="edit_department" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Designation</label><input type="text" name="designation" id="edit_designation" class="form-control"></div>
+                    <div class="form-group"><label>Salary (&#8377;)</label><input type="number" name="salary" id="edit_salary" class="form-control" step="0.01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Joining Date</label><input type="date" name="joining_date" id="edit_joining_date" class="form-control"></div>
+                    <div class="form-group"><label>Status</label>
+                        <select name="status" id="edit_status" class="form-control">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="on_leave">On Leave</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Employee</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openEditModal(id, name, email, phone, department, designation, salary, joining_date, status) {
+    document.getElementById('editEmployeeForm').action = '/admin/employee/edit/' + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_phone').value = phone;
+    document.getElementById('edit_department').value = department;
+    document.getElementById('edit_designation').value = designation;
+    document.getElementById('edit_salary').value = salary;
+    document.getElementById('edit_joining_date').value = joining_date;
+    document.getElementById('edit_status').value = status;
+    openModal('editEmployeeModal');
+}
+</script>
+{% endblock %}
