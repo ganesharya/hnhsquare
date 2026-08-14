@@ -134,6 +134,50 @@
         </div>
     </section>
 
+    {% if gallery_products or gallery_houses or gallery_designs %}
+    <section class="gallery-preview" id="gallery-preview" style="padding: 80px 20px; background: #f8f9fa;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header anim-fade-up" style="text-align: center; margin-bottom: 48px;">
+                <span class="section-tag" style="display: inline-block; background: #e94560; color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Portfolio</span>
+                <h2 class="section-title" style="font-family: 'Playfair Display', serif; font-size: 2.4rem; color: #1a1a2e; margin-bottom: 12px;">From Our Gallery</h2>
+                <p class="section-desc" style="font-size: 1rem; color: #636e72; max-width: 500px; margin: 0 auto;">Real projects, real homes, real designs. See what we have created.</p>
+            </div>
+            <div class="gallery-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+                {% for p in gallery_products %}
+                <div class="gallery-preview-card anim-fade-up" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); transition: transform 0.3s;">
+                    <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width: 100%; height: 180px; object-fit: cover; display: block;" loading="lazy">
+                    <div style="padding: 16px;">
+                        <h4 style="font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 4px;">{{ p.name }}</h4>
+                        <p style="font-size: 0.8rem; color: #636e72; margin: 0;">{{ p.category|title }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% for h in gallery_houses %}
+                <div class="gallery-preview-card anim-fade-up" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); transition: transform 0.3s;">
+                    <img src="{{ h.image_url }}" alt="{{ h.name }}" style="width: 100%; height: 180px; object-fit: cover; display: block;" loading="lazy">
+                    <div style="padding: 16px;">
+                        <h4 style="font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 4px;">{{ h.name }}</h4>
+                        <p style="font-size: 0.8rem; color: #636e72; margin: 0;">{{ h.type|title }} &middot; {{ h.size_sqft }} sqft</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% for d in gallery_designs %}
+                <div class="gallery-preview-card anim-fade-up" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); transition: transform 0.3s;">
+                    <img src="{{ d.image_url }}" alt="{{ d.room_type }} Design" style="width: 100%; height: 180px; object-fit: cover; display: block;" loading="lazy">
+                    <div style="padding: 16px;">
+                        <h4 style="font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 4px;">{{ d.room_type }} Design</h4>
+                        <p style="font-size: 0.8rem; color: #636e72; margin: 0;">{{ d.style or 'Custom' }} Style</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/gallery" class="btn btn-primary" style="display: inline-block;">View Full Gallery &rarr;</a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <section class="vr-preview" id="vr-preview">
         <div class="vr-bg"></div>
         <div class="container">

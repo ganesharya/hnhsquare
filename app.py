@@ -447,12 +447,14 @@ def home():
     conn = get_db()
     products = conn.execute("SELECT * FROM products WHERE active = 1 ORDER BY rating DESC LIMIT 8").fetchall()
     houses = conn.execute("SELECT * FROM vr_houses WHERE active = 1 LIMIT 3").fetchall()
+    gallery_products = conn.execute("SELECT * FROM products WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC LIMIT 4").fetchall()
+    gallery_houses = conn.execute("SELECT * FROM vr_houses WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC LIMIT 2").fetchall()
+    gallery_designs = conn.execute("SELECT * FROM design_requests WHERE image_url IS NOT NULL ORDER BY created_at DESC LIMIT 2").fetchall()
     conn.close()
     return render_template('index.html', products=products, houses=houses,
+                           gallery_products=gallery_products, gallery_houses=gallery_houses, gallery_designs=gallery_designs,
                            hero_title=get_content('hero_title'),
                            hero_subtitle=get_content('hero_subtitle'))
-
-@app.route('/products')
 def products_page():
     category = request.args.get('category', '')
     conn = get_db()
