@@ -586,19 +586,6 @@ def login():
         return jsonify({'error': 'Invalid credentials'}), 401
     flash('Invalid email or password', 'danger')
     return redirect(url_for('login'))
-def login():
-    data = request.get_json() or request.form
-    password = hash_password(data.get('password', ''))
-    conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ? AND password = ?", (data.get('email'), password)).fetchone()
-    conn.close()
-    if user:
-        session['user_id'] = user['id']
-        session['user_name'] = user['name']
-        session['user_email'] = user['email']
-        session['user_role'] = user['role']
-        return jsonify({'success': True, 'role': user['role'], 'name': user['name']})
-    return jsonify({'error': 'Invalid credentials'}), 401
 
 @app.route('/logout')
 def logout():
@@ -658,6 +645,18 @@ def signup():
         return redirect(url_for('home'))
 
     return render_template('signup.html')
+
+@app.route('/health')
+def health():
+    return jsonify({
+        'status': 'ok',
+        'version': '1.1.0',
+        'routes': sorted([r.rule for r in app.url_map.iter_rules() if 'static' not in r.rule]),
+        'templates': sorted(TEMPLATES.keys()),
+        'has_login': 'login.html' in TEMPLATES
+    })
+
+@app.route('/design-request', methods=['POST'])
 
 
 @app.route('/design-request', methods=['POST'])

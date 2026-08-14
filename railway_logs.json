@@ -1,1 +1,0 @@
-{"query":"query ($deploymentId: String!) { deploymentLogs(deploymentId: $deploymentId, limit: 8) { timestamp message severity } }","variables":{"deploymentId":"6b741315-46f3-415a-8107-48f064092c64"}}
