@@ -306,6 +306,19 @@ def init_db():
     for key, title, content in default_content:
         c.execute("INSERT OR IGNORE INTO site_content (key, title, content) VALUES (?, ?, ?)", (key, title, content))
 
+    # Add updated_at columns if missing (migration for existing databases)
+    try:
+        c.execute("ALTER TABLE contacts ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE design_requests ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    except sqlite3.OperationalError:
+        pass
+
+    conn.commit()
+        c.execute("INSERT OR IGNORE INTO site_content (key, title, content) VALUES (?, ?, ?)", (key, title, content))
+
     conn.commit()
     conn.close()
     print("Database initialized!")
@@ -1085,6 +1098,30 @@ def mark_contact(contact_id):
     conn.execute("UPDATE contacts SET status = 'read' WHERE id = ?", (contact_id,))
     conn.commit()
     conn.close()
+    return redirect(url_for('admin_contacts'))
+
+@app.route('/admin/contact/mark/<int:contact_id>')
+@admin_required
+def mark_contact(contact_id):
+    conn = get_db()
+    conn.execute("UPDATE contacts SET status = 'read' WHERE id = ?", (contact_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_contacts'))
+
+@app.route('/admin/contact/edit/<int:contact_id>', methods=['POST'])
+@admin_required
+def edit_contact(contact_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE contacts SET name=?, email=?, phone=?, subject=?, message=?, status=?, updated_at=CURRENT_TIMESTAMP
+        WHERE id=?
+    """, (data.get('name'), data.get('email'), data.get('phone'), data.get('subject'),
+          data.get('message'), data.get('status'), contact_id))
+    conn.commit()
+    conn.close()
+    flash('Contact updated!', 'success')
     return redirect(url_for('admin_contacts'))
 
 @app.route('/admin/design-requests')

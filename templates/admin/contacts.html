@@ -2,5 +2,96 @@
 {% block title %}Contacts{% endblock %}
 {% block page_title %}Contact Inquiries{% endblock %}
 {% block content %}
-<div class="card"><div class="card-header"><h4>All Inquiries</h4></div><div class="card-body" style="padding: 0;"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subject</th><th>Message</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>{% for c in contacts %}<tr><td>{{ c.name }}</td><td>{{ c.email }}</td><td>{{ c.phone or 'N/A' }}</td><td>{{ c.subject }}</td><td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.message }}</td><td><span class="status-badge status-{{ c.status }}">{{ c.status|title }}</span></td><td>{{ c.created_at[:10] }}</td><td>{% if c.status == 'new' %}<a href="/admin/contact/mark/{{ c.id }}" class="btn btn-sm btn-success">Mark Read</a>{% endif %}</td></tr>{% else %}<tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No inquiries</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Inquiries</h2>
+    <span class="text-muted">Total: {{ contacts|length }}</span>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Subject</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contacts %}
+                <tr>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.phone or 'N/A' }}</td>
+                    <td>{{ c.subject }}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.message }}</td>
+                    <td><span class="status-badge status-{{ c.status }}">{{ c.status|title }}</span></td>
+                    <td>{{ c.created_at[:10] }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ c.id }}, '{{ c.name|replace("'", "\\'") }}', '{{ c.email|replace("'", "\\'") }}', '{{ c.phone|replace("'", "\\'") }}', '{{ c.subject|replace("'", "\\'") }}', '{{ c.message|replace("'", "\\'") }}', '{{ c.status }}')">Edit</button>
+                        {% if c.status == 'new' %}
+                        <a href="/admin/contact/mark/{{ c.id }}" class="btn btn-sm btn-success">Mark Read</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No inquiries</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Contact Modal -->
+<div class="modal" id="editContactModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Contact</h3>
+            <button class="modal-close" onclick="closeModal('editContactModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form action="" method="POST" id="editContactForm">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" id="edit_name" class="form-control" required></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" id="edit_email" class="form-control" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" id="edit_phone" class="form-control"></div>
+                    <div class="form-group"><label>Subject</label><input type="text" name="subject" id="edit_subject" class="form-control"></div>
+                </div>
+                <div class="form-group"><label>Message</label><textarea name="message" id="edit_message" class="form-control" rows="4" required></textarea></div>
+                <div class="form-group"><label>Status</label>
+                    <select name="status" id="edit_status" class="form-control">
+                        <option value="new">New</option>
+                        <option value="read">Read</option>
+                        <option value="replied">Replied</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Contact</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openEditModal(id, name, email, phone, subject, message, status) {
+    document.getElementById('editContactForm').action = '/admin/contact/edit/' + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_phone').value = phone;
+    document.getElementById('edit_subject').value = subject;
+    document.getElementById('edit_message').value = message;
+    document.getElementById('edit_status').value = status;
+    openModal('editContactModal');
+}
+</script>
 {% endblock %}
