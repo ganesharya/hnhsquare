@@ -1,5 +1,5 @@
 [build]
 cmd = "pip install -r requirements.txt"
 
-[start]
-cmd = "gunicorn app_minimal:app --bind 0.0.0.0:$PORT --workers 1 --timeout 60"
+[deploy]
+startCommand = "gunicorn app_minimal:app --bind 0.0.0.0:$PORT --workers 1 --timeout 60"
