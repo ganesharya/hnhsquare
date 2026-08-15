@@ -1643,6 +1643,45 @@ def update_settings():
     flash('Settings updated!', 'success')
     return redirect(url_for('admin_settings'))
 
+# ===================== ADMIN PASSWORD CHANGE =====================
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+@admin_required
+def admin_change_password():
+    if request.method == 'POST':
+        current = request.form.get('current_password', '')
+        new_pass = request.form.get('new_password', '')
+        confirm = request.form.get('confirm_password', '')
+        
+        if not current or not new_pass or not confirm:
+            flash('All fields are required', 'danger')
+            return redirect(url_for('admin_change_password'))
+        
+        if new_pass != confirm:
+            flash('New passwords do not match', 'danger')
+            return redirect(url_for('admin_change_password'))
+        
+        if len(new_pass) < 6:
+            flash('Password must be at least 6 characters', 'danger')
+            return redirect(url_for('admin_change_password'))
+        
+        conn = get_db()
+        user = conn.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+        current_hash = hashlib.sha256(current.encode()).hexdigest()
+        
+        if not user or user['password'] != current_hash:
+            conn.close()
+            flash('Current password is incorrect', 'danger')
+            return redirect(url_for('admin_change_password'))
+        
+        new_hash = hashlib.sha256(new_pass.encode()).hexdigest()
+        conn.execute("UPDATE users SET password = ? WHERE id = ?", (new_hash, session['user_id']))
+        conn.commit()
+        conn.close()
+        flash('Password changed successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin/change_password.html')
+
 # ===================== HEALTH =====================
 @app.route('/health')
 def health():
@@ -1654,11 +1693,6 @@ try:
     print('Database initialized!', flush=True)
 except Exception as e:
     print(f'Database init error: {e}', flush=True)
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
-init_db()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
