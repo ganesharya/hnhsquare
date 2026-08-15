@@ -1,0 +1,123 @@
+{% extends "admin/base.html" %}
+{% block title %}Testimonials{% endblock %}
+{% block page_title %}Customer Testimonials{% endblock %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Testimonials</h2>
+    <button class="btn btn-primary" onclick="openModal('addTestimonialModal')">+ Add Testimonial</button>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Content</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in testimonials %}
+                <tr>
+                    <td>{{ t.id }}</td>
+                    <td><strong>{{ t.name }}</strong></td>
+                    <td>{{ t.role or '-' }}</td>
+                    <td>{{ t.company or '-' }}</td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.content }}</td>
+                    <td>{% for i in range(t.rating|int) %}&#11088;{% endfor %}</td>
+                    <td><span class="status-badge status-{{ 'delivered' if t.active else 'cancelled' }}">{{ 'Active' if t.active else 'Inactive' }}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ t.id }}, '{{ t.name|replace("'", "\\'") }}', '{{ t.role|replace("'", "\\'") }}', '{{ t.company|replace("'", "\\'") }}', '{{ t.content|replace("'", "\\'") }}', {{ t.rating }}, {{ t.active }})" style="margin-right: 4px;">Edit</button>
+                        <a href="/admin/testimonial/delete/{{ t.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this testimonial?')">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No testimonials yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Testimonial Modal -->
+<div class="modal" id="addTestimonialModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Add Testimonial</h3><button class="modal-close" onclick="closeModal('addTestimonialModal')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" action="/admin/testimonial/add">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="form-group"><label>Role</label><input type="text" name="role" class="form-control" placeholder="e.g. Homeowner"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Company</label><input type="text" name="company" class="form-control" placeholder="e.g. Bangalore"></div>
+                    <div class="form-group"><label>Rating</label>
+                        <select name="rating" class="form-control">
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Testimonial Content</label><textarea name="content" class="form-control" rows="4" required></textarea></div>
+                <div class="form-group"><label>Status</label><select name="active" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <button type="submit" class="btn btn-primary">Add Testimonial</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Testimonial Modal -->
+<div class="modal" id="editTestimonialModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Edit Testimonial</h3><button class="modal-close" onclick="closeModal('editTestimonialModal')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" id="editTestimonialForm" action="">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" id="edit_name" class="form-control" required></div>
+                    <div class="form-group"><label>Role</label><input type="text" name="role" id="edit_role" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Company</label><input type="text" name="company" id="edit_company" class="form-control"></div>
+                    <div class="form-group"><label>Rating</label>
+                        <select name="rating" id="edit_rating" class="form-control">
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Testimonial Content</label><textarea name="content" id="edit_content" class="form-control" rows="4" required></textarea></div>
+                <div class="form-group"><label>Status</label><select name="active" id="edit_active" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <button type="submit" class="btn btn-primary">Update Testimonial</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openEditModal(id, name, role, company, content, rating, active) {
+    document.getElementById('editTestimonialForm').action = '/admin/testimonial/edit/' + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_role').value = role;
+    document.getElementById('edit_company').value = company;
+    document.getElementById('edit_content').value = content;
+    document.getElementById('edit_rating').value = rating;
+    document.getElementById('edit_active').value = active;
+    openModal('editTestimonialModal');
+}
+</script>
+{% endblock %}

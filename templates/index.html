@@ -322,6 +322,33 @@
         </div>
     </section>
 
+    {% if testimonials %}
+    <section style="padding: 80px 20px; max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 48px;">
+            <span style="display: inline-block; background: #e94560; color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Testimonials</span>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 2.4rem; color: #1a1a2e; margin-bottom: 12px;">What Our Clients Say</h2>
+            <p style="font-size: 1rem; color: #636e72; max-width: 500px; margin: 0 auto;">Real stories from real homeowners who transformed their spaces with HNHSquare.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+            {% for t in testimonials %}
+            <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f0f0f0;">
+                <div style="margin-bottom: 16px;">
+                    {% for i in range(t.rating|int) %}<span style="color: #f39c12; font-size: 1.2rem;">&#9733;</span>{% endfor %}
+                </div>
+                <p style="font-size: 1rem; color: #2d3436; line-height: 1.7; margin-bottom: 20px; font-style: italic;">"{{ t.content }}"</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #1a1a2e, #c9a96e); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem;">{{ t.name[0] }}</div>
+                    <div>
+                        <div style="font-weight: 600; color: #1a1a2e; font-size: 0.95rem;">{{ t.name }}</div>
+                        <div style="font-size: 0.8rem; color: #636e72;">{{ t.role or 'Customer' }}{% if t.company %} at {{ t.company }}{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">

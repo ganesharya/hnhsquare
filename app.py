@@ -184,6 +184,20 @@ def init_db():
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS testimonials (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            role TEXT,
+            company TEXT,
+            content TEXT NOT NULL,
+            rating INTEGER DEFAULT 5,
+            image_url TEXT,
+            active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     admin_pass = hashlib.sha256('admin123'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (1, 'Admin', 'admin@hnhsquare.com', ?, 'admin')", (admin_pass,))
 
@@ -473,11 +487,14 @@ def home():
     gallery_products = conn.execute("SELECT * FROM products WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC LIMIT 4").fetchall()
     gallery_houses = conn.execute("SELECT * FROM vr_houses WHERE active = 1 AND image_url IS NOT NULL ORDER BY id DESC LIMIT 2").fetchall()
     gallery_designs = conn.execute("SELECT * FROM design_requests WHERE image_url IS NOT NULL ORDER BY created_at DESC LIMIT 2").fetchall()
+    testimonials = conn.execute("SELECT * FROM testimonials WHERE active = 1 ORDER BY created_at DESC LIMIT 6").fetchall()
     conn.close()
     return render_template('index.html', products=products, houses=houses,
                            gallery_products=gallery_products, gallery_houses=gallery_houses, gallery_designs=gallery_designs,
+                           testimonials=testimonials,
                            hero_title=get_content('hero_title'),
                            hero_subtitle=get_content('hero_subtitle'))
+
 def products_page():
     category = request.args.get('category', '')
     conn = get_db()
@@ -1414,5 +1431,53 @@ def delete_blog_post(post_id):
     conn.close()
     flash('Blog post deleted!', 'success')
     return redirect(url_for('admin_blog_posts'))
+
+@app.route('/admin/testimonials')
+@admin_required
+def admin_testimonials():
+    conn = get_db()
+    testimonials = conn.execute("SELECT * FROM testimonials ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/testimonials.html', testimonials=testimonials)
+
+@app.route('/admin/testimonial/add', methods=['POST'])
+@admin_required
+def add_testimonial():
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO testimonials (name, role, company, content, rating, active)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (data.get('name'), data.get('role'), data.get('company'), data.get('content'),
+          data.get('rating', 5), data.get('active', 1)))
+    conn.commit()
+    conn.close()
+    flash('Testimonial added!', 'success')
+    return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/testimonial/edit/<int:testimonial_id>', methods=['POST'])
+@admin_required
+def edit_testimonial(testimonial_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE testimonials SET name=?, role=?, company=?, content=?, rating=?, active=?
+        WHERE id=?
+    """, (data.get('name'), data.get('role'), data.get('company'), data.get('content'),
+          data.get('rating'), data.get('active', 1), testimonial_id))
+    conn.commit()
+    conn.close()
+    flash('Testimonial updated!', 'success')
+    return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/testimonial/delete/<int:testimonial_id>')
+@admin_required
+def delete_testimonial(testimonial_id):
+    conn = get_db()
+    conn.execute("DELETE FROM testimonials WHERE id = ?", (testimonial_id,))
+    conn.commit()
+    conn.close()
+    flash('Testimonial deleted!', 'success')
+    return redirect(url_for('admin_testimonials'))
 
 # ===================== MAIN =====================
