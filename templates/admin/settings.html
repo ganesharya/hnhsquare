@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-header"><h4>Email Notification Settings</h4><span style="font-size: 0.85rem; color: var(--text-light);">Configure SMTP to receive contact enquiry notifications</span></div>
+    <div class="card-body">
+        <form method="POST" action="/admin/settings/update">
+            <div class="form-row">
+                <div class="form-group"><label>Site Name</label><input type="text" name="site_name" class="form-control" value="{{ settings.site_name }}"></div>
+                <div class="form-group"><label>Notification Email</label><input type="email" name="notify_email" class="form-control" value="{{ settings.notify_email }}" placeholder="admin@example.com"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>SMTP Server</label><input type="text" name="smtp_server" class="form-control" value="{{ settings.smtp_server }}" placeholder="e.g. smtp.gmail.com"></div>
+                <div class="form-group"><label>SMTP Port</label><input type="text" name="smtp_port" class="form-control" value="{{ settings.smtp_port }}" placeholder="587"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>SMTP Username</label><input type="text" name="smtp_user" class="form-control" value="{{ settings.smtp_user }}" placeholder="your-email@gmail.com"></div>
+                <div class="form-group"><label>SMTP Password</label><input type="password" name="smtp_pass" class="form-control" value="{{ settings.smtp_pass }}" placeholder="app-specific password"></div>
+            </div>
+            <div class="form-group"><label>From Email</label><input type="email" name="from_email" class="form-control" value="{{ settings.from_email }}" placeholder="noreply@hnhsquare.com"></div>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+    </div>
+</div>
+
+<div class="card" style="max-width: 700px; margin-top: 24px;">
+    <div class="card-header"><h4>Setup Guide</h4></div>
+    <div class="card-body">
+        <p style="font-size: 0.9rem; color: var(--text-light); line-height: 1.6;">
+            <strong>Gmail SMTP:</strong><br>
+            Server: smtp.gmail.com<br>
+            Port: 587<br>
+            Username: your-email@gmail.com<br>
+            Password: Use an App Password (not your regular password)<br><br>
+            <strong>Go to:</strong> Google Account &rarr; Security &rarr; 2-Step Verification &rarr; App passwords<br><br>
+            Once configured, every contact enquiry submitted on the website will trigger an email notification to the "Notification Email" address.
+        </p>
+    </div>
+</div>
+{% endblock %}

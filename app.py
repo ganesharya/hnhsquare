@@ -407,6 +407,44 @@ def get_all_content():
     conn.close()
     return rows
 
+def get_setting(key, default=''):
+    conn = get_db()
+    row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    conn.close()
+    return row['value'] if row else default
+
+def set_setting(key, value):
+    conn = get_db()
+    conn.execute("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value))
+    conn.commit()
+    conn.close()
+
+def send_notification_email(subject, body):
+    import smtplib
+    from email.mime.text import MIMEText
+    smtp_server = get_setting('smtp_server', '')
+    smtp_port = int(get_setting('smtp_port', '587') or '587')
+    smtp_user = get_setting('smtp_user', '')
+    smtp_pass = get_setting('smtp_pass', '')
+    notify_email = get_setting('notify_email', '')
+    from_email = get_setting('from_email', smtp_user)
+    if not all([smtp_server, smtp_user, smtp_pass, notify_email]):
+        return False
+    try:
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = notify_email
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(from_email, [notify_email], msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f'Email send failed: {e}')
+        return False
+
 # ===================== AUTH HELPERS =====================
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -563,6 +601,25 @@ def about_page():
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        data = request.get_json() or request.form
+        conn = get_db()
+        conn.execute("INSERT INTO contacts (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)",
+                     (data.get('name'), data.get('email'), data.get('phone'), data.get('subject', 'General'), data.get('message')))
+        conn.commit()
+        conn.close()
+        # Send email notification
+        email_sent = send_notification_email(
+            f"New Contact: {data.get('subject', 'General Inquiry')}",
+            f"Name: {data.get('name')}\nEmail: {data.get('email')}\nPhone: {data.get('phone')}\nSubject: {data.get('subject', 'General')}\n\nMessage:\n{data.get('message')}"
+        )
+        if request.is_json:
+            return jsonify({'success': True, 'message': 'Thank you! We will contact you soon.', 'email_sent': email_sent})
+        flash('Message sent successfully!' + (' Notification email sent.' if email_sent else ''), 'success')
+        return redirect(url_for('contact'))
+    return render_template('contact.html',
+                           contact_email=get_content('contact_email'),
+                           contact_phone=get_content('contact_phone'))
     if request.method == 'POST':
         data = request.get_json() or request.form
         conn = get_db()
@@ -1571,4 +1628,39 @@ def portfolio_detail(slug):
     conn.close()
     return render_template('portfolio-detail.html', study=study, related=related)
 
+@app.route('/admin/settings')
+@admin_required
+def admin_settings():
+    settings = {
+        'smtp_server': get_setting('smtp_server', ''),
+        'smtp_port': get_setting('smtp_port', '587'),
+        'smtp_user': get_setting('smtp_user', ''),
+        'smtp_pass': get_setting('smtp_pass', ''),
+        'notify_email': get_setting('notify_email', ''),
+        'from_email': get_setting('from_email', ''),
+        'site_name': get_setting('site_name', 'HNHSquare'),
+    }
+    return render_template('admin/settings.html', settings=settings)
+
+@app.route('/admin/settings/update', methods=['POST'])
+@admin_required
+def update_settings():
+    data = request.form
+    set_setting('smtp_server', data.get('smtp_server', ''))
+    set_setting('smtp_port', data.get('smtp_port', '587'))
+    set_setting('smtp_user', data.get('smtp_user', ''))
+    set_setting('smtp_pass', data.get('smtp_pass', ''))
+    set_setting('notify_email', data.get('notify_email', ''))
+    set_setting('from_email', data.get('from_email', ''))
+    set_setting('site_name', data.get('site_name', 'HNHSquare'))
+    flash('Settings updated!', 'success')
+    return redirect(url_for('admin_settings'))
+
 # ===================== MAIN =====================
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+
