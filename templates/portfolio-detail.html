@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ study.title }} | HNHSquare Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .study-hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 120px 20px 60px; color: white; }
+        .study-hero h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; margin-bottom: 12px; }
+        .study-hero .meta { font-size: 0.9rem; opacity: 0.7; }
+        .study-content { max-width: 800px; margin: 0 auto; padding: 60px 20px; }
+        .study-content h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: #1a1a2e; margin: 32px 0 16px; }
+        .study-content p { color: #636e72; line-height: 1.8; margin-bottom: 16px; font-size: 1rem; }
+        .study-content blockquote { border-left: 4px solid #e94560; padding-left: 20px; margin: 24px 0; font-style: italic; color: #2d3436; background: #f8f9fa; padding: 16px 20px; border-radius: 0 8px 8px 0; }
+        .study-img { width: 100%; height: 350px; background: linear-gradient(135deg, #c9a96e, #1a1a2e); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem; margin: 32px 0; overflow: hidden; }
+        .study-img img { width: 100%; height: 100%; object-fit: cover; }
+        .related { padding: 60px 20px; background: #f8f9fa; }
+        .related h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #1a1a2e; text-align: center; margin-bottom: 32px; }
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .related-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); text-decoration: none; color: inherit; transition: transform 0.3s; }
+        .related-card:hover { transform: translateY(-4px); }
+        .related-card-body { padding: 20px; }
+        .related-card-body h4 { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+        .related-card-body p { font-size: 0.8rem; color: #636e72; margin: 0; }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/portfolio" class="active">Portfolio</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="study-hero">
+        <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+            <span style="display: inline-block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: #c9a96e; margin-bottom: 12px;">{{ study.category|title }}</span>
+            <h1>{{ study.title }}</h1>
+            <div class="meta">
+                {% if study.client_name %}Client: {{ study.client_name }} &middot; {% endif %}
+                {% if study.location %}{{ study.location }} &middot; {% endif %}
+                {{ study.created_at[:10] }}
+            </div>
+        </div>
+    </section>
+
+    <section class="study-content">
+        {% if study.image_url %}
+        <div class="study-img"><img src="{{ study.image_url }}" alt="{{ study.title }}"></div>
+        {% endif %}
+
+        {% if study.description %}
+        <h2>Overview</h2>
+        <p>{{ study.description }}</p>
+        {% endif %}
+
+        {% if study.challenge %}
+        <h2>The Challenge</h2>
+        <blockquote>{{ study.challenge }}</blockquote>
+        {% endif %}
+
+        {% if study.solution %}
+        <h2>Our Solution</h2>
+        <p>{{ study.solution }}</p>
+        {% endif %}
+
+        {% if study.result %}
+        <h2>The Result</h2>
+        <p>{{ study.result }}</p>
+        {% endif %}
+    </section>
+
+    {% if related %}
+    <section class="related">
+        <h3>Related Projects</h3>
+        <div class="related-grid">
+            {% for r in related %}
+            <a href="/portfolio/{{ r.slug }}" class="related-card">
+                <div class="related-card-body">
+                    <h4>{{ r.title }}</h4>
+                    <p>{{ r.category|title }}{% if r.location %} &middot; {{ r.location }}{% endif %}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <footer style="background: #1a1a2e; color: white; padding: 40px 20px; text-align: center;">
+        <p style="opacity: 0.6; font-size: 0.9rem;">&copy; 2026 HNHSquare. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

@@ -198,6 +198,24 @@ def init_db():
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS case_studies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL,
+            client_name TEXT,
+            location TEXT,
+            category TEXT DEFAULT 'residential',
+            description TEXT,
+            challenge TEXT,
+            solution TEXT,
+            result TEXT,
+            image_url TEXT,
+            active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     admin_pass = hashlib.sha256('admin123'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (1, 'Admin', 'admin@hnhsquare.com', ?, 'admin')", (admin_pass,))
 
@@ -1479,5 +1497,78 @@ def delete_testimonial(testimonial_id):
     conn.close()
     flash('Testimonial deleted!', 'success')
     return redirect(url_for('admin_testimonials'))
+
+    flash('Testimonial deleted!', 'success')
+    return redirect(url_for('admin_testimonials'))
+
+# ===================== CASE STUDIES MANAGEMENT =====================
+@app.route('/admin/case-studies')
+@admin_required
+def admin_case_studies():
+    conn = get_db()
+    studies = conn.execute("SELECT * FROM case_studies ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/case_studies.html', studies=studies)
+
+@app.route('/admin/case-study/add', methods=['POST'])
+@admin_required
+def add_case_study():
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO case_studies (slug, title, client_name, location, category, description, challenge, solution, result, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data.get('slug'), data.get('title'), data.get('client_name'), data.get('location'),
+          data.get('category', 'residential'), data.get('description'), data.get('challenge'),
+          data.get('solution'), data.get('result'), data.get('active', 1)))
+    conn.commit()
+    conn.close()
+    flash('Case study added!', 'success')
+    return redirect(url_for('admin_case_studies'))
+
+@app.route('/admin/case-study/edit/<int:study_id>', methods=['POST'])
+@admin_required
+def edit_case_study(study_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE case_studies SET slug=?, title=?, client_name=?, location=?, category=?, description=?, challenge=?, solution=?, result=?, active=?
+        WHERE id=?
+    """, (data.get('slug'), data.get('title'), data.get('client_name'), data.get('location'),
+          data.get('category'), data.get('description'), data.get('challenge'),
+          data.get('solution'), data.get('result'), data.get('active', 1), study_id))
+    conn.commit()
+    conn.close()
+    flash('Case study updated!', 'success')
+    return redirect(url_for('admin_case_studies'))
+
+@app.route('/admin/case-study/delete/<int:study_id>')
+@admin_required
+def delete_case_study(study_id):
+    conn = get_db()
+    conn.execute("DELETE FROM case_studies WHERE id = ?", (study_id,))
+    conn.commit()
+    conn.close()
+    flash('Case study deleted!', 'success')
+    return redirect(url_for('admin_case_studies'))
+
+# ===================== PORTFOLIO =====================
+@app.route('/portfolio')
+def portfolio():
+    conn = get_db()
+    studies = conn.execute("SELECT * FROM case_studies WHERE active = 1 ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('portfolio.html', studies=studies)
+
+@app.route('/portfolio/<slug>')
+def portfolio_detail(slug):
+    conn = get_db()
+    study = conn.execute("SELECT * FROM case_studies WHERE slug = ? AND active = 1", (slug,)).fetchone()
+    if not study:
+        conn.close()
+        return 'Case study not found', 404
+    related = conn.execute("SELECT * FROM case_studies WHERE category = ? AND slug != ? AND active = 1 ORDER BY created_at DESC LIMIT 3", (study['category'], slug)).fetchall()
+    conn.close()
+    return render_template('portfolio-detail.html', study=study, related=related)
 
 # ===================== MAIN =====================

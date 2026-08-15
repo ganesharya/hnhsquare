@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | HNHSquare Projects</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .portfolio-hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 100px 20px 60px; text-align: center; color: white; }
+        .portfolio-hero h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 12px; }
+        .portfolio-hero p { font-size: 1.05rem; opacity: 0.8; max-width: 600px; margin: 0 auto; }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
+        .portfolio-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; text-decoration: none; color: inherit; }
+        .portfolio-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+        .portfolio-card-img { height: 220px; background: linear-gradient(135deg, #c9a96e, #1a1a2e); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; }
+        .portfolio-card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .portfolio-card-body { padding: 24px; }
+        .portfolio-card-body .tag { display: inline-block; background: #f5f0e8; color: #c9a96e; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .portfolio-card-body h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #1a1a2e; margin-bottom: 8px; }
+        .portfolio-card-body p { font-size: 0.9rem; color: #636e72; margin: 0 0 8px; }
+        .portfolio-empty { text-align: center; padding: 80px 20px; color: #636e72; }
+        @media (max-width: 768px) { .portfolio-hero h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><span class="logo-icon">H</span><span class="logo-text">HNHSquare</span></a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/catalogue">Catalogue</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/gallery">Gallery</a></li>
+                <li><a href="/portfolio" class="active">Portfolio</a></li>
+                <li><a href="/vr-walkthrough">VR Walkthrough</a></li>
+                <li><a href="/design-studio">AI Design Studio</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+                {% if session.get('user_id') %}
+                <li><a href="/dashboard">{{ session.get('user_name', 'Account') }}</a></li>
+                <li><a href="/logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup" class="btn btn-primary" style="padding:8px 20px;font-size:0.85rem;margin-left:8px;">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <section class="portfolio-hero">
+        <h1>Our Portfolio</h1>
+        <p>Explore our completed projects across residential, commercial, and hospitality spaces.</p>
+    </section>
+
+    {% if studies %}
+    <section class="portfolio-grid">
+        {% for s in studies %}
+        <a href="/portfolio/{{ s.slug }}" class="portfolio-card">
+            <div class="portfolio-card-img">
+                {% if s.image_url %}<img src="{{ s.image_url }}" alt="{{ s.title }}">{% else %}&#127968;{% endif %}
+            </div>
+            <div class="portfolio-card-body">
+                <span class="tag">{{ s.category|title }}</span>
+                <h3>{{ s.title }}</h3>
+                <p>{% if s.client_name %}{{ s.client_name }}{% endif %}{% if s.location %} &middot; {{ s.location }}{% endif %}</p>
+                <p style="margin-top: 8px; color: #e94560; font-weight: 600; font-size: 0.85rem;">View Project &rarr;</p>
+            </div>
+        </a>
+        {% endfor %}
+    </section>
+    {% else %}
+    <section class="portfolio-empty">
+        <div style="font-size: 4rem; margin-bottom: 16px;">&#127959;</div>
+        <h2 style="font-family: 'Playfair Display', serif; color: #1a1a2e;">Portfolio Coming Soon</h2>
+        <p>We are curating our best projects to showcase here. Check back soon!</p>
+    </section>
+    {% endif %}
+
+    <footer style="background: #1a1a2e; color: white; padding: 40px 20px; text-align: center;">
+        <p style="opacity: 0.6; font-size: 0.9rem;">&copy; 2026 HNHSquare. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
