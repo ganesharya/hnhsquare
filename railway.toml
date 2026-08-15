@@ -1,5 +1,2 @@
 [build]
 cmd = "pip install -r requirements.txt"
-
-[deploy]
-startCommand = "python app_minimal.py"
