@@ -381,19 +381,6 @@ def init_db():
     conn.commit()
     conn.close()
     print("Database initialized!")
-    try:
-        c.execute("ALTER TABLE vr_houses ADD COLUMN image_url TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        c.execute("ALTER TABLE design_requests ADD COLUMN image_url TEXT")
-    except sqlite3.OperationalError:
-        pass
-
-    conn.commit()
-    conn.close()
-    print("Database initialized!")
-
 # ===================== CONTENT HELPERS =====================
 def get_content(key, default=''):
     conn = get_db()
@@ -1657,10 +1644,8 @@ def update_settings():
     return redirect(url_for('admin_settings'))
 
 # ===================== MAIN =====================
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        )
-    """)
+init_db()
 
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
