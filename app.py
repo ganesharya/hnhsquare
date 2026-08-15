@@ -9,7 +9,20 @@ import base64
 import mimetypes
 from jinja2 import DictLoader
 
+import traceback
+import sys
+
+def log_startup_error(msg):
+    with open('/tmp/startup_error.log', 'a') as f:
+        f.write(f'{datetime.now()}: {msg}')
+
 # Embedded assets - no external template/static folders needed
+try:
+    from embedded import TEMPLATES, STATIC_FILES
+except Exception as e:
+    log_startup_error(f'embedded import error: {e}')
+    TEMPLATES = {}
+    STATIC_FILES = {}
 try:
     from embedded import TEMPLATES, STATIC_FILES
 except ImportError:
