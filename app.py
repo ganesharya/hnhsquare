@@ -168,6 +168,22 @@ def init_db():
     """)
 
     # Insert default admin
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS blog_posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL,
+            category TEXT DEFAULT 'design',
+            excerpt TEXT,
+            content TEXT,
+            emoji TEXT DEFAULT '📝',
+            gradient TEXT DEFAULT '#1a1a2e,#16213e',
+            read_time TEXT DEFAULT '5 min',
+            active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     admin_pass = hashlib.sha256('admin123'.encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (1, 'Admin', 'admin@hnhsquare.com', ?, 'admin')", (admin_pass,))
 
@@ -382,23 +398,30 @@ def admin_required(f):
     return decorated
 
 @app.route('/blog')
-@app.route('/blog')
 def blog_listing():
     category = request.args.get('category', '')
-    featured = BLOG_POSTS[0]
+    conn = get_db()
     if category:
-        posts = [p for p in BLOG_POSTS if p['category'] == category]
+        posts = conn.execute("SELECT * FROM blog_posts WHERE active = 1 AND category = ? ORDER BY created_at DESC", (category,)).fetchall()
+        featured = posts[0] if posts else None
     else:
-        posts = BLOG_POSTS[1:]
-    categories = list(set(p['category'] for p in BLOG_POSTS))
+        posts = conn.execute("SELECT * FROM blog_posts WHERE active = 1 ORDER BY created_at DESC").fetchall()
+        featured = posts[0] if posts else None
+        posts = posts[1:] if len(posts) > 1 else []
+    cats = conn.execute("SELECT category, COUNT(*) as cnt FROM blog_posts WHERE active = 1 GROUP BY category").fetchall()
+    categories = [c['category'] for c in cats]
+    conn.close()
     return render_template('blog.html', posts=posts, featured=featured, categories=categories, active_category=category)
 
 @app.route('/blog/<slug>')
 def blog_post(slug):
-    post = next((p for p in BLOG_POSTS if p['slug'] == slug), None)
+    conn = get_db()
+    post = conn.execute("SELECT * FROM blog_posts WHERE slug = ? AND active = 1", (slug,)).fetchone()
     if not post:
+        conn.close()
         return 'Post not found', 404
-    related = [p for p in BLOG_POSTS if p['category'] == post['category'] and p['slug'] != slug][:3]
+    related = conn.execute("SELECT * FROM blog_posts WHERE category = ? AND slug != ? AND active = 1 ORDER BY created_at DESC LIMIT 3", (post['category'], slug)).fetchall()
+    conn.close()
     return render_template('blog-post.html', post=post, related=related)
 
 @app.route('/gallery')
@@ -1342,5 +1365,54 @@ def upload_content_image():
     filepath = os.path.join(upload_dir, filename)
     file.save(filepath)
     return jsonify({'url': f'/static/uploads/{filename}', 'filename': filename})
+
+@app.route('/admin/blog-posts')
+@admin_required
+def admin_blog_posts():
+    conn = get_db()
+    posts = conn.execute("SELECT * FROM blog_posts ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return render_template('admin/blog_posts.html', posts=posts)
+
+@app.route('/admin/blog-post/add', methods=['POST'])
+@admin_required
+def add_blog_post():
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO blog_posts (slug, title, category, excerpt, content, emoji, gradient, read_time, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (data.get('slug'), data.get('title'), data.get('category', 'design'), data.get('excerpt'),
+          data.get('content'), data.get('emoji', '📝'), data.get('gradient', '#1a1a2e,#16213e'),
+          data.get('read_time', '5 min'), data.get('active', 1)))
+    conn.commit()
+    conn.close()
+    flash('Blog post added!', 'success')
+    return redirect(url_for('admin_blog_posts'))
+
+@app.route('/admin/blog-post/edit/<int:post_id>', methods=['POST'])
+@admin_required
+def edit_blog_post(post_id):
+    data = request.form
+    conn = get_db()
+    conn.execute("""
+        UPDATE blog_posts SET slug=?, title=?, category=?, excerpt=?, content=?, emoji=?, gradient=?, read_time=?, active=?
+        WHERE id=?
+    """, (data.get('slug'), data.get('title'), data.get('category'), data.get('excerpt'), data.get('content'),
+          data.get('emoji'), data.get('gradient'), data.get('read_time'), data.get('active', 1), post_id))
+    conn.commit()
+    conn.close()
+    flash('Blog post updated!', 'success')
+    return redirect(url_for('admin_blog_posts'))
+
+@app.route('/admin/blog-post/delete/<int:post_id>')
+@admin_required
+def delete_blog_post(post_id):
+    conn = get_db()
+    conn.execute("DELETE FROM blog_posts WHERE id = ?", (post_id,))
+    conn.commit()
+    conn.close()
+    flash('Blog post deleted!', 'success')
+    return redirect(url_for('admin_blog_posts'))
 
 # ===================== MAIN =====================

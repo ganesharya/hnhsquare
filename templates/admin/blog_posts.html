@@ -1,0 +1,120 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog Posts{% endblock %}
+{% block page_title %}Blog & News Management{% endblock %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="font-size: 1.2rem;">All Blog Posts</h2>
+    <button class="btn btn-primary" onclick="openModal('addPostModal')">+ Add Post</button>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Slug</th>
+                    <th>Read Time</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr>
+                    <td>{{ post.id }}</td>
+                    <td><strong>{{ post.title }}</strong></td>
+                    <td>{{ post.category|title }}</td>
+                    <td><code style="background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ post.slug }}</code></td>
+                    <td>{{ post.read_time }}</td>
+                    <td><span class="status-badge status-{{ 'delivered' if post.active else 'cancelled' }}">{{ 'Active' if post.active else 'Inactive' }}</span></td>
+                    <td>{{ post.created_at[:10] }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal({{ post.id }}, '{{ post.slug|replace("'", "\\'") }}', '{{ post.title|replace("'", "\\'") }}', '{{ post.category }}', '{{ post.excerpt|replace("'", "\\'") }}', '{{ post.content|replace("'", "\\'") }}', '{{ post.emoji }}', '{{ post.gradient|replace("'", "\\'") }}', '{{ post.read_time|replace("'", "\\'") }}', {{ post.active }})" style="margin-right: 4px;">Edit</button>
+                        <a href="/admin/blog-post/delete/{{ post.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this post?')">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align: center; color: var(--text-light); padding: 40px;">No blog posts yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Post Modal -->
+<div class="modal" id="addPostModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header"><h3>Add Blog Post</h3><button class="modal-close" onclick="closeModal('addPostModal')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" action="/admin/blog-post/add">
+                <div class="form-row">
+                    <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" required></div>
+                    <div class="form-group"><label>Slug (URL-friendly)</label><input type="text" name="slug" class="form-control" placeholder="e.g. modern-kitchen-trends" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Category</label><input type="text" name="category" class="form-control" value="design"></div>
+                    <div class="form-group"><label>Read Time</label><input type="text" name="read_time" class="form-control" value="5 min"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Emoji</label><input type="text" name="emoji" class="form-control" value="📝" maxlength="2"></div>
+                    <div class="form-group"><label>Gradient (CSS format)</label><input type="text" name="gradient" class="form-control" value="#1a1a2e,#16213e"></div>
+                </div>
+                <div class="form-group"><label>Excerpt (short summary)</label><textarea name="excerpt" class="form-control" rows="2" required></textarea></div>
+                <div class="form-group"><label>Content (full article - HTML allowed)</label><textarea name="content" class="form-control" rows="6" required></textarea></div>
+                <div class="form-group"><label>Status</label><select name="active" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <button type="submit" class="btn btn-primary">Add Post</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Post Modal -->
+<div class="modal" id="editPostModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header"><h3>Edit Blog Post</h3><button class="modal-close" onclick="closeModal('editPostModal')">&times;</button></div>
+        <div class="modal-body">
+            <form method="POST" id="editPostForm" action="">
+                <div class="form-row">
+                    <div class="form-group"><label>Title</label><input type="text" name="title" id="edit_title" class="form-control" required></div>
+                    <div class="form-group"><label>Slug</label><input type="text" name="slug" id="edit_slug" class="form-control" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Category</label><input type="text" name="category" id="edit_category" class="form-control"></div>
+                    <div class="form-group"><label>Read Time</label><input type="text" name="read_time" id="edit_read_time" class="form-control"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Emoji</label><input type="text" name="emoji" id="edit_emoji" class="form-control" maxlength="2"></div>
+                    <div class="form-group"><label>Gradient</label><input type="text" name="gradient" id="edit_gradient" class="form-control"></div>
+                </div>
+                <div class="form-group"><label>Excerpt</label><textarea name="excerpt" id="edit_excerpt" class="form-control" rows="2" required></textarea></div>
+                <div class="form-group"><label>Content</label><textarea name="content" id="edit_content" class="form-control" rows="6" required></textarea></div>
+                <div class="form-group"><label>Status</label><select name="active" id="edit_active" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <button type="submit" class="btn btn-primary">Update Post</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openEditModal(id, slug, title, category, excerpt, content, emoji, gradient, read_time, active) {
+    document.getElementById('editPostForm').action = '/admin/blog-post/edit/' + id;
+    document.getElementById('edit_slug').value = slug;
+    document.getElementById('edit_title').value = title;
+    document.getElementById('edit_category').value = category;
+    document.getElementById('edit_excerpt').value = excerpt;
+    document.getElementById('edit_content').value = content;
+    document.getElementById('edit_emoji').value = emoji;
+    document.getElementById('edit_gradient').value = gradient;
+    document.getElementById('edit_read_time').value = read_time;
+    document.getElementById('edit_active').value = active;
+    openModal('editPostModal');
+}
+</script>
+{% endblock %}
