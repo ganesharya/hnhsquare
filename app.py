@@ -1643,7 +1643,21 @@ def update_settings():
     flash('Settings updated!', 'success')
     return redirect(url_for('admin_settings'))
 
+# ===================== HEALTH =====================
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok', 'templates': len(TEMPLATES), 'static': len(STATIC_FILES)}), 200
+
 # ===================== MAIN =====================
+try:
+    init_db()
+    print('Database initialized!', flush=True)
+except Exception as e:
+    print(f'Database init error: {e}', flush=True)
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
 init_db()
 
 if __name__ == '__main__':
