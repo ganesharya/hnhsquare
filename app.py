@@ -1696,9 +1696,6 @@ def admin_change_password():
     return render_template('admin/change_password.html')
 
 # ===================== HEALTH =====================
-@app.route('/health')
-def health():
-    return jsonify({'status': 'ok', 'templates': len(TEMPLATES), 'static': len(STATIC_FILES)}), 200
 
 # ===================== MAIN =====================
 try:
